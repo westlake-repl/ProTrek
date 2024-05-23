@@ -4,7 +4,6 @@ import torch
 from .init_model import model
 from utils.foldseek_util import get_struc_seq
 
-
 input_types = ["protein sequence", "protein structure", "text"]
 
 input_examples = {
@@ -19,7 +18,7 @@ input_examples = {
         "dpdplvvqppdddplqappppfaadpvcvlvdpvaaaeeeeaqallsllllllclvlvgfyeyefqaeqpdwdddpddvpdddftqtqfapcqppvclqpqqvllvvqvvfwdwqeaefdqpppvpddppddhddppdgdddqqhdppfdpqqdlgqatwgghrntcqnhdpqfddawadadpvahqgtfdaldpdpvvrvvlvvvllvvlcvqlvkdqclqvpflqqcllqvllcvvcvvppwhkgggtgswhadpvhsldirhttsssscvvqrvdpssvssydyhyskhqqewhaghdpfgetawtkiarnccvvpvpdrgihigghrfyeypralprvllrcvssvqalqdpggdprhnqdqffalkwfwwkkkfkfffdpvsqvcqcvppppdpssnvqlvvqcvvcvpdpgsgdssrakhfmwtdadpvqqktktwidghhndddddppddpsrmimimiihwafrdrqfgwgfdppgdhpvrttrihtrddgdpvsvvsvvvrlvvsvvssvstgdtdprgpididrrnsvnlieqrqaedddsvngqayqlqhgpsyphygyfdrnhrngigngdcvsvrssssvsnsvvsscvvvvdpdddppdddddd",
         "ddppppdcvvvvvvvvvppppppvppldplvvlldvvllvvqlvllvvllvvcvvpdpnfflqdwqkafdlddpvvvvvpddlllllqlllvrlvsllvrlvsslvslvpdpdrdvvnnvssvvlnvssvvvnvssvslvsvvsnppddppprdddgdididrgssvssvsvssnsvgsvvvssvvssvvvvd"
     ],
-
+    
     "text": [
         "RNA-editing ligase in kinetoplastid mitochondrial.",
         "Oxidase which catalyzes the oxidation of various aldopyranoses and disaccharides.",
@@ -97,7 +96,7 @@ def build_score_computation():
                 
                 # Choose the type of input 1
                 input_type_1 = gr.Dropdown(input_types, label="Input type", value="protein sequence",
-                                             interactive=True, visible=True)
+                                           interactive=True, visible=True)
                 
                 # Provide an upload button to upload a pdb file
                 upload_btn_1 = gr.UploadButton(label="Upload .pdb/.cif file", scale=0)
@@ -121,14 +120,14 @@ def build_score_computation():
             examples.click(fn=load_example, inputs=[examples], outputs=[input_1, input_2])
             
             compute_btn = gr.Button(value="Compute")
-            
+        
         # Change examples based on input type
         input_type_1.change(fn=change_input_type, inputs=[input_type_1, input_type_2],
                             outputs=[examples, input_1, input_2, upload_btn_1, upload_btn_2])
         
         input_type_2.change(fn=change_input_type, inputs=[input_type_1, input_type_2],
                             outputs=[examples, input_1, input_2, upload_btn_1, upload_btn_2])
-
+        
         similarity_score = gr.Label(label="similarity score")
         compute_btn.click(fn=compute_score, inputs=[input_type_1, input_1, input_type_2, input_2],
                           outputs=[similarity_score])
