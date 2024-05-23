@@ -1,0 +1,14 @@
+/weights/ProTrek_35M_UniRef50/CLAProt_35M_UniRef50.pt
+/weights/ProTrek_35M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/config.json
+/weights/ProTrek_35M_UniRef50/esm2_t12_35M_UR50D/config.json
+/weights/ProTrek_35M_UniRef50/foldseek_t12_35M/config.json
+/weights/ProTrek_35M_UniRef50/esm2_t12_35M_UR50D/special_tokens_map.json
+/weights/ProTrek_35M_UniRef50/foldseek_t12_35M/special_tokens_map.json
+/weights/ProTrek_35M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/tokenizer_config.json
+/weights/ProTrek_35M_UniRef50/esm2_t12_35M_UR50D/tokenizer_config.json
+/weights/ProTrek_35M_UniRef50/foldseek_t12_35M/tokenizer_config.json
+/weights/ProTrek_35M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/vocab.txt
+/weights/ProTrek_35M_UniRef50/esm2_t12_35M_UR50D/vocab.txt
+/weights/ProTrek_35M_UniRef50/foldseek_t12_35M/vocab.txt
+/test.ipynb
+/test.py

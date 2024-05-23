@@ -1,0 +1,1 @@
+# Place the Foldseek binary file here
