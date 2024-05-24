@@ -1,5 +1,5 @@
 # ProTrek
-<a href="https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_35M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-red?label=Demo" style="max-width: 100%;"></a>
+<a href="https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-red?label=Demo" style="max-width: 100%;"></a>
 
 <details open><summary><b>Table of contents</b></summary>
 
@@ -42,9 +42,9 @@ Please download all files and put them in the `weights` directory, e.g. `weights
 
 We provide an example to download the pre-trained model weights.
 ```
-huggingface-cli download westlake-repl/ProTrek_35M_UniRef50 \
+huggingface-cli download westlake-repl/ProTrek_650M_UniRef50 \
                          --repo-type model \
-                         --local-dir weights/ProTrek_35M_UniRef50
+                         --local-dir weights/ProTrek_650M_UniRef50
 ```
 > Note: if you cannot access the huggingface website, you can try to connect to the mirror site through "export 
 > HF_ENDPOINT=https://hf-mirror.com"
@@ -67,12 +67,12 @@ from utils.foldseek_util import get_struc_seq
 
 # Load model
 config = {
-    "protein_config": "weights/ProTrek_35M_UniRef50/esm2_t12_35M_UR50D",
-    "text_config": "weights/ProTrek_35M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-    "structure_config": "weights/ProTrek_35M_UniRef50/foldseek_t12_35M",
+    "protein_config": "weights/ProTrek_650M_UniRef50/esm2_t33_650M_UR50D",
+    "text_config": "weights/ProTrek_650M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+    "structure_config": "weights/ProTrek_650M_UniRef50/foldseek_t30_150M",
     "load_protein_pretrained": False,
     "load_text_pretrained": False,
-    "from_checkpoint": "weights/ProTrek_35M_UniRef50/ProTrek_35M_UniRef50.pt"
+    "from_checkpoint": "weights/ProTrek_650M_UniRef50/ProTrek_650M_UniRef50.pt"
 }
 
 device = "cuda"
@@ -115,32 +115,32 @@ with torch.no_grad():
 Protein sequence embedding shape: torch.Size([1, 1024])
 Protein structure embedding shape: torch.Size([1, 1024])
 Text embedding shape: torch.Size([1, 1024])
-Similarity score between protein sequence and structure: 38.83826446533203
-Similarity score between protein sequence and text: 17.90523338317871
-Similarity score between protein structure and text: 18.044755935668945
+Similarity score between protein sequence and structure: 28.506675720214844
+Similarity score between protein sequence and text: 17.842409133911133
+Similarity score between protein structure and text: 11.866174697875977
 """
 ```
 
 ## Deploy your demo locally
-We provide an [online demo](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_35M_UniRef50) for ProTrek. For users who want to deploy the demo locally, please follow the steps below.
+We provide an [online demo](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50) for ProTrek. For users who want to deploy the demo locally, please follow the steps below.
 
 ### Step 1: Download the Foldseek binary file
 Please follow the instructions in the [Download Foldseek binary file](#Download-Foldseek-binary-file) section.
 
 ### Step 2: Download the pre-trained model weights
-Currently we support the deployment of [ProTrek_35M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_35M_UniRef50).
-Please download all files and put them in the `weights` directory, e.g. `weights/ProTrek_35M_UniRef50/...`. The example
+Currently we support the deployment of [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50).
+Please download all files and put them in the `weights` directory, e.g. `weights/ProTrek_650M_UniRef50/...`. The example
 code is in the [Download model weights](#Download-model-weights) section.
 
 ### Step 3: Download pre-computed faiss index
-We provide pre-computed protein embeddings and text embeddings using [ProTrek_35M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_35M_UniRef50),
-and build faiss index for fast similarity search. Please download the pre-computed faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_35M_UniRef50/tree/main)
-and put it in the `weights/faiss_index` directory, e.g. `weights/faiss_index/faiss_index_ProTrek_35M_UniRef50/...`. We
+We provide pre-computed protein embeddings and text embeddings using [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50),
+and build faiss index for fast similarity search. Please download the pre-computed faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_650M_UniRef50/tree/main)
+and put it in the `weights/faiss_index` directory, e.g. `weights/faiss_index/faiss_index_ProTrek_650M_UniRef50/...`. We
 provide an example to download the pre-computed faiss index.
 ```
-huggingface-cli download westlake-repl/faiss_index_ProTrek_35M_UniRef50 \
+huggingface-cli download westlake-repl/faiss_index_ProTrek_650M_UniRef50 \
                          --repo-type dataset \
-                         --local-dir weights/faiss_index/faiss_index_ProTrek_35M_UniRef50
+                         --local-dir weights/faiss_index/faiss_index_ProTrek_650M_UniRef50
 ```
 
 ### Step 4: Run the demo
