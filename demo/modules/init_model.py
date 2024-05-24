@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 from utils.constants import sequence_level
-from model.ProtTrek.protrek_trimodal_model import ProTrekTrimodalModel
+from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
 
 
 def load_model():
