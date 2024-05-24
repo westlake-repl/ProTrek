@@ -8,12 +8,12 @@ from model.ProtTrek.protrek_trimodal_model import ProTrekTrimodalModel
 
 def load_model():
     config = {
-        "protein_config": "weights/ProTrek_35M_UniRef50/esm2_t12_35M_UR50D",
-        "text_config": "weights/ProTrek_35M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-        "structure_config": "weights/ProTrek_35M_UniRef50/foldseek_t12_35M",
+        "protein_config": "weights/ProTrek_650M_UniRef50/esm2_t33_650M_UR50D",
+        "text_config": "weights/ProTrek_650M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+        "structure_config": "weights/ProTrek_650M_UniRef50/foldseek_t30_150M",
         "load_protein_pretrained": False,
         "load_text_pretrained": False,
-        "from_checkpoint": "weights/ProTrek_35M_UniRef50/ProTrek_35M_UniRef50.pt"
+        "from_checkpoint": "weights/ProTrek_650M_UniRef50/ProTrek_650M_UniRef50.pt"
     }
 
     model = ProTrekTrimodalModel(**config)
@@ -22,7 +22,7 @@ def load_model():
 
 
 def load_index():
-    index_dir = "weights/faiss_index/faiss_index_ProTrek_35M_UniRef50"
+    index_dir = "weights/faiss_index/faiss_index_ProTrek_650M_UniRef50"
     all_index = {}
     
     # Load protein sequence index
