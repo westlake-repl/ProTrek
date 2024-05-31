@@ -44,9 +44,9 @@ Please download all files and put them in the `weights` directory, e.g. `weights
 
 
 | **Name**                                                     | **Size （protein sequence encoder）** | **Size （protein structure encoder）** | **Size （text encoder）** | Dataset               |
-| ------------------------------------------------------------ | ------------------------------------- | -------------------------------------- | ------------------------- | --------------------- |
-| [ProTrek_35M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_35M_UniRef50) | 35M parameters                        | 35M parameters                         | 110M parameters           | Swiss-Prot + UniRef50 |
-| [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50) | 650M parameters                       | 150M parameters                        | 110M parameters           | Swiss-Prot + UniRef50 |
+| ------------------------------------------------------------ | ------------------------------------- | -------------------------------------- |-------------------------| --------------------- |
+| [ProTrek_35M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_35M_UniRef50) | 35M parameters                        | 35M parameters                         | 130M parameters         | Swiss-Prot + UniRef50 |
+| [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50) | 650M parameters                       | 150M parameters                        | 130M parameters         | Swiss-Prot + UniRef50 |
 
 We provide an example to download the pre-trained model weights.
 ```
