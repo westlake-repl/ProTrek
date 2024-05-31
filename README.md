@@ -1,5 +1,11 @@
-# ProTrek
+# ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning
+<a href=""><img src="https://img.shields.io/badge/Paper-bioRxiv-green" style="max-width: 100%;"></a>
 <a href="https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-red?label=Demo" style="max-width: 100%;"></a>
+<a href="https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
+
+The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning]().
+
+If you have any question about the paper or the code, feel free to raise an issue!
 
 <details open><summary><b>Table of contents</b></summary>
 
@@ -12,10 +18,12 @@
 </details>
 
 ## Overview
-ProTrek is a multimodal model that integrates protein sequence, protein structure, and text information for better 
-protein understanding. It adopts contrastive learning to learn the representations of protein sequence and structure. 
-During the pre-training phase, we calculate the InfoNCE loss for each two modalities as [CLIP](https://arxiv.org/abs/2103.00020)
-does.
+ProTrek is a tri-modal protein language model that jointly models protein sequence, structure and function (SSF). It employs
+contrastive learning with three core alignment strategies: (1) using structure as the supervision signal for AA
+sequences and vice versa, (2) mutual supervision between sequences and functions, and (3) mutual supervision
+between structures and functions. This tri-modal alignment training enables ProTrek to tightly associate SSF by
+bringing genuine sample pairs (sequence-structure, sequence-function, and structure-function) closer together while
+pushing negative samples farther apart in the latent space.
 
 <img src="figure/img.png" style="zoom:33%;" />
 
