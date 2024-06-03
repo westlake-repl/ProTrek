@@ -2,8 +2,8 @@ import gradio as gr
 import torch
 import pandas as pd
 
-from utils.foldseek_util import get_struc_seq
 from .init_model import model, all_index
+from .blocks import upload_pdb_button, parse_pdb_file
 
 
 # Samples for input
@@ -87,8 +87,8 @@ def change_input_type(choice: str):
         visible = False
     else:
         visible = True
-        
-    return samples, "", gr.update(visible=visible)
+    
+    return samples, "", gr.update(visible=visible), gr.update(visible=visible)
 
 
 # Load example from dataset
@@ -103,17 +103,6 @@ def subsection_visibility(query_type: str):
     else:
         return gr.update(visible=False)
  
- 
-# Parse the uploaded structure file
-def parse_pdb_file(input_type, file):
-    parsed_seqs = get_struc_seq("bin/foldseek", file)
-
-    for seqs in parsed_seqs.values():
-        if input_type == "protein sequence":
-            return seqs[0]
-        else:
-            return seqs[1].lower()
-
 
 # Build the block for text to protein
 def build_search_module():
@@ -139,8 +128,8 @@ def build_search_module():
                 input = gr.Text(label="Input")
                 
                 # Provide an upload button to upload a pdb file
-                upload_btn = gr.UploadButton(label="Upload .pdb/.cif file", scale=0, visible=False)
-                upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn], outputs=[input])
+                upload_btn, chain_box = upload_pdb_button(visible=False)
+                upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn, chain_box], outputs=[input])
             
             # Choose topk results
             topk = gr.Slider(1, 100, 5,  step=1, label="Retrieve top k results")
@@ -152,7 +141,7 @@ def build_search_module():
             examples.click(fn=load_example, inputs=[examples], outputs=input)
             
             # Change examples based on input type
-            input_type.change(fn=change_input_type, inputs=[input_type], outputs=[examples, input, upload_btn])
+            input_type.change(fn=change_input_type, inputs=[input_type], outputs=[examples, input, upload_btn, chain_box])
             
             with gr.Row():
                 t2p_btn = gr.Button(value="Search")

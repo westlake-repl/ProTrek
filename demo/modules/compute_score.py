@@ -2,7 +2,8 @@ import gradio as gr
 import torch
 
 from .init_model import model
-from utils.foldseek_util import get_struc_seq
+from .blocks import upload_pdb_button, parse_pdb_file
+
 
 input_types = ["protein sequence", "protein structure", "text"]
 
@@ -48,16 +49,6 @@ def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: s
     return f"{score.item():.4f}"
 
 
-# Convert pdb file to aa sequence or foldseek sequence
-def parse_pdb(file, input_type):
-    parsed_seqs = get_struc_seq("bin/foldseek", file)
-    for seqs in parsed_seqs.values():
-        if input_type == "protein sequence":
-            return seqs[0]
-        else:
-            return seqs[1].lower()
-
-
 def change_input_type(choice_1: str, choice_2: str):
     examples_1 = input_examples[choice_1]
     examples_2 = input_examples[choice_2]
@@ -77,7 +68,8 @@ def change_input_type(choice_1: str, choice_2: str):
     else:
         visible_2 = True
     
-    return samples, "", "", gr.update(visible=visible_1), gr.update(visible=visible_2)
+    return (samples, "", "", gr.update(visible=visible_1), gr.update(visible=visible_1),
+            gr.update(visible=visible_2), gr.update(visible=visible_2))
 
 
 # Load example from dataset
@@ -99,8 +91,8 @@ def build_score_computation():
                                            interactive=True, visible=True)
                 
                 # Provide an upload button to upload a pdb file
-                upload_btn_1 = gr.UploadButton(label="Upload .pdb/.cif file", scale=0)
-                upload_btn_1.upload(parse_pdb, inputs=[upload_btn_1, input_type_1], outputs=[input_1])
+                upload_btn_1, chain_box_1 = upload_pdb_button(visible=True)
+                upload_btn_1.upload(parse_pdb_file, inputs=[input_type_1, upload_btn_1, chain_box_1], outputs=[input_1])
             
             with gr.Row():
                 input_2 = gr.Textbox(label="Input 2")
@@ -110,8 +102,8 @@ def build_score_computation():
                                            interactive=True, visible=True)
                 
                 # Provide an upload button to upload a pdb file
-                upload_btn_2 = gr.UploadButton(label="Upload .pdb/.cif file", scale=0, visible=False)
-                upload_btn_2.upload(parse_pdb, inputs=[upload_btn_2, input_type_2], outputs=[input_2])
+                upload_btn_2, chain_box_2 = upload_pdb_button(visible=False)
+                upload_btn_2.upload(parse_pdb_file, inputs=[input_type_2, upload_btn_2, chain_box_2], outputs=[input_2])
             
             # Provide examples
             examples = gr.Dataset(samples=samples, type="index", components=[input_1, input_2], label="Input examples")
@@ -123,10 +115,12 @@ def build_score_computation():
         
         # Change examples based on input type
         input_type_1.change(fn=change_input_type, inputs=[input_type_1, input_type_2],
-                            outputs=[examples, input_1, input_2, upload_btn_1, upload_btn_2])
+                            outputs=[examples, input_1, input_2, upload_btn_1, chain_box_1,
+                                     upload_btn_2, chain_box_2])
         
         input_type_2.change(fn=change_input_type, inputs=[input_type_1, input_type_2],
-                            outputs=[examples, input_1, input_2, upload_btn_1, upload_btn_2])
+                            outputs=[examples, input_1, input_2, upload_btn_1, chain_box_1,
+                                     upload_btn_2, chain_box_2])
         
         similarity_score = gr.Label(label="similarity score")
         compute_btn.click(fn=compute_score, inputs=[input_type_1, input_1, input_type_2, input_2],
