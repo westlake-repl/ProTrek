@@ -72,7 +72,7 @@ Below is an example of how to obtain embeddings and calculate similarity score u
 ```
 import torch
 
-from model.ProtTrek.protrek_trimodal_model import ProTrekTrimodalModel
+from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
 from utils.foldseek_util import get_struc_seq
 
 # Load model
