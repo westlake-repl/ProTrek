@@ -3,7 +3,7 @@
 <a href="https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-red?label=Demo" style="max-width: 100%;"></a>
 <a href="https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
 
-The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning]().
+The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://www.biorxiv.org/content/10.1101/2024.05.30.596740v1).
 
 If you have any question about the paper or the code, feel free to raise an issue!
 
