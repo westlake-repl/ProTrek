@@ -25,7 +25,7 @@ between structures and functions. This tri-modal alignment training enables ProT
 bringing genuine sample pairs (sequence-structure, sequence-function, and structure-function) closer together while
 pushing negative samples farther apart in the latent space.
 
-ProTrek achieves over 30x and 60x improvements in sequence-function and function-sequence retrieval, is 100x faster than Foldseek and MMseqs2 in protein alignment, and outperforms ESM-2 in 9 of 11 downstream prediction tasks.
+ProTrek achieves over 30x and 60x improvements in sequence-function and function-sequence retrieval, is 100x faster than Foldseek and MMseqs2 in protein-protein search, and outperforms ESM-2 in 9 of 11 downstream prediction tasks.
 
 <img src="figure/img.png" style="zoom:33%;" />
 
