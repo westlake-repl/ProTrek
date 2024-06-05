@@ -113,14 +113,14 @@ def build_search_module():
             input_type = gr.Radio(["protein sequence", "protein structure", "text"], label="Input type (e.g. 'text' means searching based on text descriptions)", value="text")
             
             with gr.Row():
-                # Set query type
-                query_type = gr.Radio(["protein sequence", "protein structure", "text"], label="Query type (e.g. 'protein sequence' means returning qualified protein sequences)", value="protein sequence")
+                # Set output type
+                query_type = gr.Radio(["protein sequence", "protein structure", "text"], label="Output type (e.g. 'protein sequence' means returning qualified protein sequences)", value="protein sequence")
             
-                # If the query type is "text", provide an option to choose the subsection of text
+                # If the output type is "text", provide an option to choose the subsection of text
                 subsection_type = gr.Dropdown(list(valid_subsections), label="Subsection of text", value="Function",
                                               scale=0, interactive=True, visible=False)
                 
-                # Add event listener to query type
+                # Add event listener to output type
                 query_type.change(fn=subsection_visibility, inputs=[query_type], outputs=[subsection_type])
             
             with gr.Row():
