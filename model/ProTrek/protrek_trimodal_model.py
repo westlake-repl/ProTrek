@@ -322,6 +322,27 @@ class ProTrekTrimodalModel(AbstractModel):
             self.reset_metrics("train")
         
         return loss
+    
+    def padded_gather(self, tensor: torch.Tensor):
+        """
+        Gather tensors from all GPUs, allowing different shapes at the batch dimension.
+        """
+        
+        # Get the size of the tensor
+        size = tensor.shape[0]
+        all_sizes = self.all_gather(torch.tensor(size, device=tensor.device))
+        max_size = max(all_sizes)
+        
+        # Pad the tensor
+        if size != max_size:
+            tmp = torch.zeros(max_size, tensor.shape[-1], dtype=tensor.dtype, device=tensor.device)
+            tmp[:size] = tensor
+            tensor = tmp
+        
+        padded_tensor = self.all_gather(tensor).view(-1, tensor.shape[-1])
+        tensor = padded_tensor[:sum(all_sizes)]
+        
+        return tensor
 
     def _get_protein_indices(self):
         world_size = dist.get_world_size()
