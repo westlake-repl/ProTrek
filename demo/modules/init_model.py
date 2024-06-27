@@ -69,11 +69,11 @@ def load_index():
 device = "cuda"
 
 print("Loading model...")
-model = load_model()
-model.to(device)
+# model = load_model()
+# model.to(device)
 
 print("Loading index...")
-all_index, valid_subsections = load_index()
+# all_index, valid_subsections = load_index()
 print("Done...")
-# model = None
-# all_index, valid_subsections = {"text": {}}, {}
+model = None
+all_index, valid_subsections = {"text": {}}, {}
