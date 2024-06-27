@@ -21,7 +21,7 @@ valid_subsections = sorted(valid_subsections)
 
 
 def clear_results():
-    return ""
+    return "", gr.update(visible=False)
 
 
 # Search from database
@@ -29,18 +29,27 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     input_modality = input_type.split(" ")[-1].replace("sequence", "protein")
     with torch.no_grad():
         input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
-    
+
     output_modality = query_type.split(" ")[-1]
     if output_modality == "text":
         index = all_index["text"][subsection_type]["index"]
         ids = all_index["text"][subsection_type]["ids"]
-        
+
     else:
         index = all_index[output_modality]["index"]
         ids = all_index[output_modality]["ids"]
         
     scores, ranks = index.search(input_embedding, topk)
     scores = scores / model.temperature.item()
+
+    # Write the results to a temporary file for downloading
+    path = f"/tmp/results.tsv"
+    with open(path, "w") as w:
+        w.write("Id\tMatching score\n")
+        for i in range(topk):
+            w.write(f"{ids[i]}\t{scores[0][i]}\n")
+    
+    assert topk < index.ntotal, "You cannot retrieve more than the database size."
     
     # Get topk ids
     topk_ids = []
@@ -52,10 +61,15 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
             # Provide link to uniprot website
             topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
     
-    df = pd.DataFrame({"Id": topk_ids, "Matching score": scores[0]})
-    output = df.to_markdown()
+    limit = 1000
+    df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": scores[0][:limit]})
+    if len(topk_ids) > limit:
+        info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
+                               index=[1000])
+        df = pd.concat([df, info_df], axis=0)
     
-    return output
+    output = df.to_markdown()
+    return output, gr.DownloadButton(label="Download results", value=path, visible=True, scale=0)
 
 
 def change_input_type(choice: str):
@@ -132,7 +146,7 @@ def build_search_module():
                 upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn, chain_box], outputs=[input])
             
             # Choose topk results
-            topk = gr.Slider(1, 100, 5,  step=1, label="Retrieve top k results")
+            topk = gr.Slider(1, 1000000, 5,  step=1, label="Retrieve top k results")
 
             # Provide examples
             examples = gr.Dataset(samples=samples, components=[input], type="index", label="Input examples")
@@ -147,6 +161,11 @@ def build_search_module():
                 t2p_btn = gr.Button(value="Search")
                 clear_btn = gr.Button(value="Clear")
         
-        results = gr.Markdown(label="results")
-        t2p_btn.click(fn=search, inputs=[input, topk, input_type, query_type, subsection_type], outputs=results)
-        clear_btn.click(fn=clear_results, outputs=results)
+        with gr.Column():
+            results = gr.Markdown(label="results", height=450)
+            download_btn = gr.DownloadButton(label="Download results", visible=False)
+            
+        t2p_btn.click(fn=search, inputs=[input, topk, input_type, query_type, subsection_type],
+                      outputs=[results, download_btn])
+        
+        clear_btn.click(fn=clear_results, outputs=[results, download_btn])
