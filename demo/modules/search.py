@@ -2,11 +2,15 @@ import gradio as gr
 import torch
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 from scipy.stats import norm
 from .init_model import model, all_index
 from .blocks import upload_pdb_button, parse_pdb_file
 
+
+tmp_file_path = "/tmp/results.tsv"
+tmp_plot_path = "/tmp/histogram.svg"
 
 # Samples for input
 samples = [
@@ -26,49 +30,69 @@ def clear_results():
     return "", gr.update(visible=False), gr.update(visible=False)
 
 
-# Search from database
-def search(input: str, topk: int, input_type: str, query_type: str, subsection_type: str):
-    # input_modality = input_type.split(" ")[-1].replace("sequence", "protein")
-    # with torch.no_grad():
-    #     input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
-    #
-    # output_modality = query_type.split(" ")[-1]
-    # if output_modality == "text":
-    #     index = all_index["text"][subsection_type]["index"]
-    #     ids = all_index["text"][subsection_type]["ids"]
-    #
-    # else:
-    #     index = all_index[output_modality]["index"]
-    #     ids = all_index[output_modality]["ids"]
-        
-    # scores, ranks = index.search(input_embedding, topk)
-    # scores = scores / model.temperature.item()
-    
-    ranks = [list(range(topk))]
-    ids = ["P12345"] * topk
-    scores = torch.randn(topk).tolist()
-    
-    assert topk < 10000, f"You cannot retrieve more than the database size ({10000})."
-    
-    # Write the results to a temporary file for downloading
-    path = f"/tmp/results.tsv"
-    with open(path, "w") as w:
-        w.write("Id\tMatching score\n")
-        for i in range(topk):
-            w.write(f"{ids[i]}\t{scores[i]}\n")
-    
-    # Plot the histogram of scores and fit a normal distribution
+def plot(scores) -> None:
+    """
+    Plot the distribution of scores and fit a normal distribution.
+    Args:
+        scores: List of scores
+    """
     plt.hist(scores, bins=100, density=True, alpha=0.6)
+    plt.title('Distribution of similarity scores in the database', fontsize=15)
     plt.xlabel('Similarity score', fontsize=15)
     plt.ylabel('Density', fontsize=15)
-    
+
+    mu, std = norm.fit(scores)
+
+    # Plot the Gaussian
+    xmin, xmax = plt.xlim()
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu, std)
+    plt.plot(x, p)
+
     # Convert the plot to svg format
-    plt.savefig("/tmp/histogram.svg")
+    plt.savefig(tmp_plot_path)
     plt.cla()
+
+
+# Search from database
+def search(input: str, topk: int, input_type: str, query_type: str, subsection_type: str):
+    input_modality = input_type.split(" ")[-1].replace("sequence", "protein")
+    with torch.no_grad():
+        input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
+
+    output_modality = query_type.split(" ")[-1]
+    if output_modality == "text":
+        index = all_index["text"][subsection_type]["index"]
+        ids = all_index["text"][subsection_type]["ids"]
+
+    else:
+        index = all_index[output_modality]["index"]
+        ids = all_index[output_modality]["ids"]
+        
+    scores, ranks = index.search(input_embedding, index.ntotal)
+    scores, ranks = scores[0], ranks[0]
+    scores = scores / model.temperature.item()
+    plot(scores)
+
+    top_scores = scores[:topk]
+    top_ranks = ranks[:topk]
+    
+    # ranks = [list(range(topk))]
+    # ids = ["P12345"] * topk
+    # scores = torch.randn(topk).tolist()
+    
+    if topk > index.ntotal:
+        raise gr.Error(f"You cannot retrieve more than the database size ({index.ntotal}).")
+
+    # Write the results to a temporary file for downloading
+    with open(tmp_file_path, "w") as w:
+        w.write("Id\tMatching score\n")
+        for i in range(topk):
+            w.write(f"{ids[i]}\t{top_scores[i]}\n")
     
     # Get topk ids
     topk_ids = []
-    for rank in ranks[0]:
+    for rank in top_ranks:
         now_id = ids[rank]
         if query_type == "text":
             topk_ids.append(now_id)
@@ -77,7 +101,7 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
             topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
     
     limit = 1000
-    df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": scores[:limit]})
+    df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": top_scores[:limit]})
     if len(topk_ids) > limit:
         info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
                                index=[1000])
@@ -85,8 +109,8 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     
     output = df.to_markdown()
     return (output,
-            gr.DownloadButton(label="Download results", value=path, visible=True, scale=0),
-            gr.update(value="/tmp/histogram.svg", visible=True))
+            gr.DownloadButton(label="Download results", value=tmp_file_path, visible=True, scale=0),
+            gr.update(value=tmp_plot_path, visible=True))
 
 
 def change_input_type(choice: str):
@@ -119,7 +143,7 @@ def change_input_type(choice: str):
     else:
         visible = True
     
-    return samples, "", gr.update(visible=visible), gr.update(visible=visible)
+    return gr.update(samples=samples), "", gr.update(visible=visible), gr.update(visible=visible)
 
 
 # Load example from dataset

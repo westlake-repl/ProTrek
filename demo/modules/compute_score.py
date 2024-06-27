@@ -68,7 +68,7 @@ def change_input_type(choice_1: str, choice_2: str):
     else:
         visible_2 = True
     
-    return (samples, "", "", gr.update(visible=visible_1), gr.update(visible=visible_1),
+    return (gr.update(samples=samples), "", "", gr.update(visible=visible_1), gr.update(visible=visible_1),
             gr.update(visible=visible_2), gr.update(visible=visible_2))
 
 
