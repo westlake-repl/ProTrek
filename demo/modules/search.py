@@ -88,7 +88,8 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     with open(tmp_file_path, "w") as w:
         w.write("Id\tMatching score\n")
         for i in range(topk):
-            w.write(f"{ids[i]}\t{top_scores[i]}\n")
+            rank = top_ranks[i]
+            w.write(f"{ids[rank]}\t{top_scores[i]}\n")
     
     # Get topk ids
     topk_ids = []
