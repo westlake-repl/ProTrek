@@ -16,7 +16,5 @@ with gr.Blocks() as demo:
 
 
 if __name__ == '__main__':
-    # args = get_args()
-
-    # Run demo
+    # Run the demo
     demo.launch()
