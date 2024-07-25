@@ -32,7 +32,7 @@ def load_index():
     print("Loading sequence index...")
     index_path = f"{config.sequence_index_dir}/sequence.index"
     sequence_index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
-    print(sequence_index)
+    
     
     id_path = f"{config.sequence_index_dir}/ids.tsv"
     uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
@@ -81,15 +81,10 @@ with open(config_path, 'r', encoding='utf-8') as r:
 device = "cuda"
 
 print("Loading model...")
-# model = load_model()
-# model.to(device)
+model = load_model()
+model.to(device)
 
-# all_index, valid_subsections = load_index()
+all_index, valid_subsections = load_index()
 print("Done...")
-model = None
+# model = None
 # all_index, valid_subsections = {"text": {}}, {}
-print(all_index["sequence"]["ids"][-8750000:])
-import numpy as np
-remove_ids = np.arange(45656448, 54143378)
-print(remove_ids)
-print(all_index["sequence"]["index"].remove_ids(remove_ids))

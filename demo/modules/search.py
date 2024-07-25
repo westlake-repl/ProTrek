@@ -45,9 +45,13 @@ def plot(scores) -> None:
 
     # Plot the Gaussian
     xmin, xmax = plt.xlim()
+    _, ymax = plt.ylim()
     x = np.linspace(xmin, xmax, 100)
     p = norm.pdf(x, mu, std)
     plt.plot(x, p)
+    
+    # Plot total number of scores
+    plt.text(xmax, 0.9*ymax, f"Total number: {len(scores)}", ha='right', fontsize=12)
 
     # Convert the plot to svg format
     plt.savefig(tmp_plot_path)
@@ -55,7 +59,7 @@ def plot(scores) -> None:
 
 
 # Search from database
-def search(input: str, topk: int, input_type: str, query_type: str, subsection_type: str):
+def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str):
     input_modality = input_type.split(" ")[-1].replace("sequence", "protein")
     with torch.no_grad():
         input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
@@ -69,11 +73,26 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
         index = all_index[output_modality]["index"]
         ids = all_index[output_modality]["ids"]
         
+    if check_index_ivf(query_type, subsection_type):
+        if index.nlist < nprobe:
+            raise gr.Error(f"The number of clusters to search must be less than or equal to the number of clusters in the index ({index.nlist}).")
+        else:
+            index.nprobe = nprobe
+    
+    if topk > index.ntotal:
+        raise gr.Error(f"You cannot retrieve more than the database size ({index.ntotal}).")
+    
+    # Retrieve all scores to plot the distribution
     scores, ranks = index.search(input_embedding, index.ntotal)
     scores, ranks = scores[0], ranks[0]
+    
+    # Remove inf values
+    selector = scores > -1
+    scores = scores[selector]
+    ranks = ranks[selector]
     scores = scores / model.temperature.item()
     plot(scores)
-
+    
     top_scores = scores[:topk]
     top_ranks = ranks[:topk]
     
@@ -81,9 +100,6 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     # ids = ["P12345"] * topk
     # scores = torch.randn(topk).tolist()
     
-    if topk > index.ntotal:
-        raise gr.Error(f"You cannot retrieve more than the database size ({index.ntotal}).")
-
     # Write the results to a temporary file for downloading
     with open(tmp_file_path, "w") as w:
         w.write("Id\tMatching score\n")
@@ -153,14 +169,39 @@ def load_example(example_id):
  
  
 # Change the visibility of subsection type
-def subsection_visibility(query_type: str):
+def change_output_type(query_type: str, subsection_type: str):
+    nprobe_visible = check_index_ivf(query_type, subsection_type)
+    
     if query_type == "text":
-        return gr.update(visible=True)
+        return gr.update(visible=True), gr.update(visible=nprobe_visible)
     else:
-        return gr.update(visible=False)
+        return gr.update(visible=False), gr.update(visible=nprobe_visible)
+
+
+def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
+    """
+    Check if the index is of IVF type.
+    Args:
+        index_type: Type of index.
+        subsection_type: If the "index_type" is "text", get the index based on the subsection type.
+
+    Returns:
+        Whether the index is of IVF type or not.
+    """
+    if index_type == "protein sequence":
+        index = all_index["sequence"]["index"]
+    
+    elif index_type == "protein structure":
+        index = all_index["structure"]["index"]
+    
+    elif index_type == "text":
+        index = all_index["text"][subsection_type]["index"]
+    
+    nprobe_visible = True if hasattr(index, "nprobe") else False
+    return nprobe_visible
  
 
-# Build the block for text to protein
+# Build the searching block
 def build_search_module():
     gr.Markdown(f"# Search from Swiss-Prot database (the whole UniProt database will be supported soon)")
     with gr.Row(equal_height=True):
@@ -175,10 +216,7 @@ def build_search_module():
                 # If the output type is "text", provide an option to choose the subsection of text
                 subsection_type = gr.Dropdown(list(valid_subsections), label="Subsection of text", value="Function",
                                               scale=0, interactive=True, visible=False)
-                
-                # Add event listener to output type
-                query_type.change(fn=subsection_visibility, inputs=[query_type], outputs=[subsection_type])
-            
+
             with gr.Row():
                 # Input box
                 input = gr.Text(label="Input")
@@ -186,6 +224,16 @@ def build_search_module():
                 # Provide an upload button to upload a pdb file
                 upload_btn, chain_box = upload_pdb_button(visible=False)
                 upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn, chain_box], outputs=[input])
+            
+            
+            # If the index is of IVF type, provide an option to choose the number of clusters.
+            nprobe_visible = check_index_ivf(query_type.value)
+            nprobe = gr.Slider(1, 1000000, 1000,  step=1, visible=nprobe_visible,
+                               label="Number of clusters to search (lower value for faster search and higher value for more accurate search)")
+            
+            # Add event listener to output type
+            query_type.change(fn=change_output_type, inputs=[query_type, subsection_type],
+                              outputs=[subsection_type, nprobe])
             
             # Choose topk results
             topk = gr.Slider(1, 1000000, 5,  step=1, label="Retrieve top k results")
@@ -200,7 +248,7 @@ def build_search_module():
             input_type.change(fn=change_input_type, inputs=[input_type], outputs=[examples, input, upload_btn, chain_box])
             
             with gr.Row():
-                t2p_btn = gr.Button(value="Search")
+                search_btn = gr.Button(value="Search")
                 clear_btn = gr.Button(value="Clear")
         
         with gr.Row():
@@ -211,7 +259,7 @@ def build_search_module():
                 # Plot the distribution of scores
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
-        t2p_btn.click(fn=search, inputs=[input, topk, input_type, query_type, subsection_type],
+        search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type],
                       outputs=[results, download_btn, histogram])
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
