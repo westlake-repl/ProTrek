@@ -25,49 +25,72 @@ def load_model():
     return model
 
 
+def load_faiss_index(index_path: str):
+    index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
+    index.metric_type = faiss.METRIC_INNER_PRODUCT
+    return index
+
+
 def load_index():
     all_index = {}
     
     # Load protein sequence index
-    print("Loading sequence index...")
-    index_path = f"{config.sequence_index_dir}/sequence.index"
-    sequence_index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
-    
-    
-    id_path = f"{config.sequence_index_dir}/ids.tsv"
-    uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
-    
-    all_index["sequence"] = {"index": sequence_index, "ids": uniprot_ids}
-    
+    all_index["sequence"] = {}
+    for db in tqdm(config.sequence_index_dir, desc="Loading sequence index..."):
+        db_name = db["name"]
+        index_dir = db["index_dir"]
+
+        index_path = f"{index_dir}/sequence.index"
+        sequence_index = load_faiss_index(index_path)
+
+        id_path = f"{index_dir}/ids.tsv"
+        uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
+
+        all_index["sequence"][db_name] = {"index": sequence_index, "ids": uniprot_ids}
+
     # Load protein structure index
     print("Loading structure index...")
-    index_path = f"{config.structure_index_dir}/structure.index"
-    structure_index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
-    
-    id_path = f"{config.structure_index_dir}/ids.tsv"
-    uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
-    
-    all_index["structure"] = {"index": structure_index, "ids": uniprot_ids}
+    all_index["structure"] = {}
+    for db in tqdm(config.structure_index_dir, desc="Loading structure index..."):
+        db_name = db["name"]
+        index_dir = db["index_dir"]
+
+        index_path = f"{index_dir}/structure.index"
+        structure_index = load_faiss_index(index_path)
+
+        id_path = f"{index_dir}/ids.tsv"
+        uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
+
+        all_index["structure"][db_name] = {"index": structure_index, "ids": uniprot_ids}
     
     # Load text index
     all_index["text"] = {}
-    text_dir = f"{config.text_index_dir}/subsections"
-    
-    # Remove "Taxonomic lineage" from sequence_level. This is a special case which we don't need to index.
-    valid_subsections = set()
-    sequence_level.add("Global")
-    for subsection in tqdm(sequence_level, desc="Loading text index..."):
-        index_path = f"{text_dir}/{subsection.replace(' ', '_')}.index"
-        if not os.path.exists(index_path):
-            continue
+    valid_subsections = {}
+    for db in tqdm(config.text_index_dir, desc="Loading text index..."):
+        db_name = db["name"]
+        index_dir = db["index_dir"]
+        all_index["text"][db_name] = {}
+        text_dir = f"{index_dir}/subsections"
+        
+        # Remove "Taxonomic lineage" from sequence_level. This is a special case which we don't need to index.
+        valid_subsections[db_name] = set()
+        sequence_level.add("Global")
+        for subsection in tqdm(sequence_level):
+            index_path = f"{text_dir}/{subsection.replace(' ', '_')}.index"
+            if not os.path.exists(index_path):
+                continue
+                
+            text_index = load_faiss_index(index_path)
             
-        text_index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
-        
-        id_path = f"{text_dir}/{subsection.replace(' ', '_')}_ids.tsv"
-        text_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
-        
-        all_index["text"][subsection] = {"index": text_index, "ids": text_ids}
-        valid_subsections.add(subsection)
+            id_path = f"{text_dir}/{subsection.replace(' ', '_')}_ids.tsv"
+            text_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
+            
+            all_index["text"][db_name][subsection] = {"index": text_index, "ids": text_ids}
+            valid_subsections[db_name].add(subsection)
+    
+    # Sort valid_subsections
+    for db_name in valid_subsections:
+        valid_subsections[db_name] = sorted(list(valid_subsections[db_name]))
 
     return all_index, valid_subsections
 
@@ -79,6 +102,8 @@ with open(config_path, 'r', encoding='utf-8') as r:
     config = EasyDict(yaml.safe_load(r))
 
 device = "cuda"
+
+print(config)
 
 print("Loading model...")
 model = load_model()

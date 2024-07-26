@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy.stats import norm
-from .init_model import model, all_index
+from .init_model import model, all_index, valid_subsections
 from .blocks import upload_pdb_button, parse_pdb_file
 
 
@@ -19,11 +19,12 @@ samples = [
     ["Protein that serves as an enzyme."]
 ]
 
-# Choices for subsection type
-# valid_subsections = {"Function", "Subcellular location", "Protein names", "Sequence similarities", "GO annotation", "Global"}
-valid_subsections = all_index["text"].keys()
-# Sort the subsections
-valid_subsections = sorted(valid_subsections)
+# Databases for different modalities
+now_db = {
+    "sequence": list(all_index["sequence"].keys())[0],
+    "structure": list(all_index["structure"].keys())[0],
+    "text": list(all_index["text"].keys())[0]
+}
 
 
 def clear_results():
@@ -60,18 +61,18 @@ def plot(scores) -> None:
 
 # Search from database
 def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str):
-    input_modality = input_type.split(" ")[-1].replace("sequence", "protein")
+    input_modality = input_type.replace("sequence", "protein")
     with torch.no_grad():
         input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
 
-    output_modality = query_type.split(" ")[-1]
-    if output_modality == "text":
-        index = all_index["text"][subsection_type]["index"]
-        ids = all_index["text"][subsection_type]["ids"]
+    db = now_db[query_type]
+    if query_type == "text":
+        index = all_index["text"][db][subsection_type]["index"]
+        ids = all_index["text"][db][subsection_type]["ids"]
 
     else:
-        index = all_index[output_modality]["index"]
-        ids = all_index[output_modality]["ids"]
+        index = all_index[query_type][db]["index"]
+        ids = all_index[query_type][db]["ids"]
         
     if check_index_ivf(query_type, subsection_type):
         if index.nlist < nprobe:
@@ -140,14 +141,14 @@ def change_input_type(choice: str):
             ["Protein that serves as an enzyme."]
         ]
 
-    elif choice == "protein sequence":
+    elif choice == "sequence":
         samples = [
             ["MSATAEQNARNPKGKGGFARTVSQRKRKRLFLIGGALAVLAVAVGLMLTAFNQDIRFFRTPADLTEQDMTSGARFRLGGLVEEGSVSRTGSELRFTVTDTIKTVKVVFEGIPPDLFREGQGVVAEGRFGSDGLFRADNVLAKHDENYVPKDLADSLKKKGVWEGK"],
             ["MITLDWEKANGLITTVVQDATTKQVLMVAYMNQESLAKTMATGETWFWSRSRKTLWHKGATSGNIQTVKTIAVDCDADTLLVTVDPAGPACHTGHISCFYRHYPEGKDLT"],
             ["MDLKQYVSEVQDWPKPGVSFKDITTIMDNGEAYGYATDKIVEYAKDRDVDIVVGPEARGFIIGCPVAYSMGIGFAPVRKEGKLPREVIRYEYDLEYGTNVLTMHKDAIKPGQRVLITDDLLATGGTIEAAIKLVEKLGGIVVGIAFIIELKYLNGIEKIKDYDVMSLISYDE"]
         ]
 
-    elif choice == "protein structure":
+    elif choice == "structure":
         samples = [
             ["dddddddddddddddpdpppvcppvnvvvvvvvvvvvvvvvvvvvvvvvvvvqdpqdedeqvrddpcqqpvqhkhkykafwappqwdddpqkiwtwghnppgiaieieghdappqddhrfikifiaghdpvrhtygdhidtdddpddddvvnvvvcvvvvndpdd"],
             ["dddadcpvpvqkakefeaeppprdtadiaiagpvqvvvcvvpqwhwgqdpvvrdidgqcpvpvqiwrwddwdaddnrryiytythtpahsdpvrhvhpppadvvgpddpd"],
@@ -171,11 +172,13 @@ def load_example(example_id):
 # Change the visibility of subsection type
 def change_output_type(query_type: str, subsection_type: str):
     nprobe_visible = check_index_ivf(query_type, subsection_type)
+    subsection_visible = True if query_type == "text" else False
     
-    if query_type == "text":
-        return gr.update(visible=True), gr.update(visible=nprobe_visible)
-    else:
-        return gr.update(visible=False), gr.update(visible=nprobe_visible)
+    return (
+        gr.update(visible=subsection_visible), 
+        gr.update(visible=nprobe_visible),
+        gr.update(choices=list(all_index[query_type].keys()), value=now_db[query_type])
+    )
 
 
 def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
@@ -188,18 +191,37 @@ def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
     Returns:
         Whether the index is of IVF type or not.
     """
-    if index_type == "protein sequence":
-        index = all_index["sequence"]["index"]
+    db = now_db[index_type]
+    if index_type == "sequence":
+        index = all_index["sequence"][db]["index"]
     
-    elif index_type == "protein structure":
-        index = all_index["structure"]["index"]
+    elif index_type == "structure":
+        index = all_index["structure"][db]["index"]
     
     elif index_type == "text":
-        index = all_index["text"][subsection_type]["index"]
+        index = all_index["text"][db][subsection_type]["index"]
     
     nprobe_visible = True if hasattr(index, "nprobe") else False
     return nprobe_visible
- 
+
+
+def change_db_type(query_type: str, subsection_type: str, db_type: str):
+    """
+    Change the database to search.
+    Args:
+        query_type: The output type.
+        db_type: The database to search.
+    """
+    now_db[query_type] = db_type
+    
+    if query_type == "text":
+        subsection_update = gr.update(choices=list(valid_subsections[now_db["text"]]), value="Function")
+    else:
+        subsection_update = gr.update(visible=False)
+    
+    nprobe_visible = check_index_ivf(query_type, subsection_type)
+    return subsection_update, gr.update(visible=nprobe_visible)
+
 
 # Build the searching block
 def build_search_module():
@@ -207,15 +229,23 @@ def build_search_module():
     with gr.Row(equal_height=True):
         with gr.Column():
             # Set input type
-            input_type = gr.Radio(["protein sequence", "protein structure", "text"], label="Input type (e.g. 'text' means searching based on text descriptions)", value="text")
+            input_type = gr.Radio(["sequence", "structure", "text"], label="Input type (e.g. 'text' means searching based on text descriptions)", value="text")
             
             with gr.Row():
                 # Set output type
-                query_type = gr.Radio(["protein sequence", "protein structure", "text"], label="Output type (e.g. 'protein sequence' means returning qualified protein sequences)", value="protein sequence")
+                query_type = gr.Radio(
+                    ["sequence", "structure", "text"],
+                    label="Output type (e.g. 'sequence' means returning qualified sequences)",
+                    value="sequence",
+                    scale=2,
+                )
             
                 # If the output type is "text", provide an option to choose the subsection of text
-                subsection_type = gr.Dropdown(list(valid_subsections), label="Subsection of text", value="Function",
-                                              scale=0, interactive=True, visible=False)
+                subsection_type = gr.Dropdown(valid_subsections[now_db["text"]], label="Subsection of text", value="Function",
+                                              interactive=True, visible=False, scale=0)
+                
+                db_type = gr.Dropdown(all_index["sequence"].keys(), label="Database", value=now_db["sequence"],
+                                              interactive=True, visible=True, scale=0)
 
             with gr.Row():
                 # Input box
@@ -233,7 +263,11 @@ def build_search_module():
             
             # Add event listener to output type
             query_type.change(fn=change_output_type, inputs=[query_type, subsection_type],
-                              outputs=[subsection_type, nprobe])
+                              outputs=[subsection_type, nprobe, db_type])
+            
+            # Add event listener to db type
+            db_type.change(fn=change_db_type, inputs=[query_type, subsection_type, db_type],
+                           outputs=[subsection_type, nprobe])
             
             # Choose topk results
             topk = gr.Slider(1, 1000000, 5,  step=1, label="Retrieve top k results")
