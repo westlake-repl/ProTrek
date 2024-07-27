@@ -26,7 +26,11 @@ def load_model():
 
 
 def load_faiss_index(index_path: str):
-    index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
+    if config.faiss_config.IO_FLAG_MMAP:
+        index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
+    else:
+        index = faiss.read_index(index_path)
+        
     index.metric_type = faiss.METRIC_INNER_PRODUCT
     return index
 
@@ -104,10 +108,10 @@ with open(config_path, 'r', encoding='utf-8') as r:
 device = "cuda"
 
 print("Loading model...")
-model = load_model()
-model.to(device)
-
+# model = load_model()
+# model.to(device)
+#
 all_index, valid_subsections = load_index()
 print("Done...")
-# model = None
-# all_index, valid_subsections = {"text": {}}, {}
+model = None
+# all_index, valid_subsections = {"text": {}, "sequence": {"UniRef50": None}, "structure": {"UniRef50": None}}, {}
