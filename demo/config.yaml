@@ -1,16 +1,41 @@
+#model_dir: /sujin/Models/ProTrek/ProTrek_650M_UniRef50
+#sequence_index_dir:
+#  - name: UniRef50
+#    index_dir: /mnt/5t/faiss_index/UniRef50/ProTrek_650M_UniRef50/sequence
+#  - name: Swiss-Prot
+#    index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/sequence
+#  - name: PDB
+#    index_dir: /sujin/Datasets/ProTrek/faiss_index/PDB/ProTrek_650M_UniRef50/sequence
+#
+#structure_index_dir:
+#  - name: Swiss-Prot
+#    index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/structure
+#  - name: PDB
+#    index_dir: /sujin/Datasets/ProTrek/faiss_index/PDB/ProTrek_650M_UniRef50/structure
+#
+#text_index_dir:
+#  - name: UniProt
+#    index_dir: /mnt/5t/faiss_index/UniRef50/ProTrek_650M_UniRef50/text
+#  - name: Swiss-Prot
+#    index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/text
+
 model_dir: /sujin/Models/ProTrek/ProTrek_650M_UniRef50
 sequence_index_dir:
   - name: UniRef50
-    index_dir: /mnt/5t/faiss_index/UniRef50/ProTrek_650M_UniRef50/sequence
+    index_dir: /sujin/Datasets/ProTrek/faiss_index/UniRef50/ProTrek_650M_UniRef50/sequence
   - name: Swiss-Prot
     index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/sequence
+  - name: PDB
+    index_dir: /sujin/Datasets/ProTrek/faiss_index/PDB/ProTrek_650M_UniRef50/sequence
 
 structure_index_dir:
   - name: Swiss-Prot
     index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/structure
+  - name: PDB
+    index_dir: /sujin/Datasets/ProTrek/faiss_index/PDB/ProTrek_650M_UniRef50/structure
 
 text_index_dir:
   - name: UniProt
-    index_dir: /mnt/5t/faiss_index/UniRef50/ProTrek_650M_UniRef50/text
+    index_dir: /sujin/Datasets/ProTrek/faiss_index/UniRef50/ProTrek_650M_UniRef50/text
   - name: Swiss-Prot
     index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/text

@@ -115,8 +115,13 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         if query_type == "text":
             topk_ids.append(now_id)
         else:
-            # Provide link to uniprot website
-            topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
+            if db != "PDB":
+                # Provide link to uniprot website
+                topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
+            else:
+                # Provide link to pdb website
+                pdb_id = now_id.split("-")[0]
+                topk_ids.append(f"[{now_id}](https://www.rcsb.org/structure/{pdb_id})")
     
     limit = 1000
     df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": top_scores[:limit]})
@@ -230,7 +235,7 @@ def build_search_module():
         with gr.Column():
             # Set input type
             input_type = gr.Radio(["sequence", "structure", "text"], label="Input type (e.g. 'text' means searching based on text descriptions)", value="text")
-            
+
             with gr.Row():
                 # Set output type
                 query_type = gr.Radio(

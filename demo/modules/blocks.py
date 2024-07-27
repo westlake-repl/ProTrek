@@ -43,7 +43,7 @@ def parse_pdb_file(input_type: str, file: str, chain: str) -> str:
     """
     try:
         parsed_seqs = get_struc_seq("bin/foldseek", file, [chain])[chain]
-        if input_type == "protein sequence":
+        if input_type == "sequence":
             return parsed_seqs[0]
         else:
             return parsed_seqs[1].lower()

@@ -103,8 +103,6 @@ with open(config_path, 'r', encoding='utf-8') as r:
 
 device = "cuda"
 
-print(config)
-
 print("Loading model...")
 model = load_model()
 model.to(device)
