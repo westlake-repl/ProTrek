@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 import yaml
+import glob
 
 from easydict import EasyDict
 from utils.constants import sequence_level
@@ -12,12 +13,12 @@ from tqdm import tqdm
 
 def load_model():
     model_config = {
-        "protein_config": f"{config.model_dir}/esm2_t33_650M_UR50D",
+        "protein_config": glob.glob(f"{config.model_dir}/esm2_*")[0],
         "text_config": f"{config.model_dir}/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-        "structure_config": f"{config.model_dir}/foldseek_t30_150M",
+        "structure_config": glob.glob(f"{config.model_dir}/foldseek_*")[0],
         "load_protein_pretrained": False,
         "load_text_pretrained": False,
-        "from_checkpoint": f"{config.model_dir}/ProTrek_650M_UniRef50.pt"
+        "from_checkpoint": glob.glob(f"{config.model_dir}/*.pt")[0]
     }
 
     model = ProTrekTrimodalModel(**model_config)
@@ -108,10 +109,10 @@ with open(config_path, 'r', encoding='utf-8') as r:
 device = "cuda"
 
 print("Loading model...")
-# model = load_model()
-# model.to(device)
-#
+model = load_model()
+model.to(device)
+
 all_index, valid_subsections = load_index()
 print("Done...")
-model = None
+# model = None
 # all_index, valid_subsections = {"text": {}, "sequence": {"UniRef50": None}, "structure": {"UniRef50": None}}, {}

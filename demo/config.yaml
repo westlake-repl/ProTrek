@@ -1,4 +1,6 @@
 #model_dir: /sujin/Models/ProTrek/ProTrek_650M_UniRef50
+#faiss_config:
+#  IO_FLAG_MMAP: True
 #sequence_index_dir:
 #  - name: UniRef50
 #    index_dir: /mnt/5t/faiss_index/UniRef50/ProTrek_650M_UniRef50/sequence
@@ -19,7 +21,7 @@
 #  - name: Swiss-Prot
 #    index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/text
 
-model_dir: /sujin/Models/ProTrek/ProTrek_650M_UniRef50
+model_dir: /sujin/Models/ProTrek/ProTrek_35M_UniRef50
 
 faiss_config:
   IO_FLAG_MMAP: True
