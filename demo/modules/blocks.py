@@ -6,7 +6,7 @@ from utils.foldseek_util import get_struc_seq
 ####################################################
 #                  gradio blocks                   #
 ####################################################
-def upload_pdb_button(visible: bool = True):
+def upload_pdb_button(visible: bool = True, chain_visible: bool = True):
     """
     Provide an upload button to upload a pdb file
     Args:
@@ -17,7 +17,7 @@ def upload_pdb_button(visible: bool = True):
         
         # Which chain to be extracted
         chain_box = gr.Textbox(label="Chain (to be extracted from the pdb file)", value="A",
-                               visible=visible, interactive=True)
+                               visible=chain_visible, interactive=True)
         
         upload_btn = gr.UploadButton(label="Upload .pdb/.cif file", visible=visible)
         
