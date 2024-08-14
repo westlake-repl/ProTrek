@@ -257,7 +257,7 @@ def build_search_module():
                 input = gr.Text(label="Input")
                 
                 # Provide an upload button to upload a pdb file
-                upload_btn, chain_box = upload_pdb_button(visible=False)
+                upload_btn, chain_box = upload_pdb_button(visible=False, chain_visible=False)
                 upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn, chain_box], outputs=[input])
             
             
