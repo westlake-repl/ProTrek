@@ -74,7 +74,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         index = all_index[query_type][db]["index"]
         ids = all_index[query_type][db]["ids"]
         
-    if check_index_ivf(query_type, subsection_type):
+    if hasattr(index, "nprobe"):
         if index.nlist < nprobe:
             raise gr.Error(f"The number of clusters to search must be less than or equal to the number of clusters in the index ({index.nlist}).")
         else:
