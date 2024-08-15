@@ -207,8 +207,8 @@ def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
         index = all_index["text"][db][subsection_type]["index"]
     
     nprobe_visible = True if hasattr(index, "nprobe") else False
-    return nprobe_visible
-
+    # return nprobe_visible
+    return False
 
 def change_db_type(query_type: str, subsection_type: str, db_type: str):
     """
