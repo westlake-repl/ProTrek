@@ -26,6 +26,23 @@ now_db = {
     "text": list(all_index["text"].keys())[0]
 }
 
+# Record status of all variables
+try:
+    # Check if all variables are already set
+    now_input_type
+    now_output_type
+    now_subsection_type
+    
+except Exception:
+    now_input_type = "structure"
+    now_output_type = "sequence"
+    now_subsection_type = "Function"
+
+raise gr.Error(f"You cannot retrieve more than the database size ().")
+
+
+print(now_input_type, now_output_type, now_subsection_type)
+print(now_db[now_output_type])
 
 def clear_results():
     return "", gr.update(visible=False), gr.update(visible=False)
@@ -138,13 +155,14 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
 
 def change_input_type(choice: str):
     # Change examples if input type is changed
-    global samples
+    global samples, now_input_type
     if choice == "text":
         samples = [
             ["Proteins with zinc bindings."],
             ["Proteins locating at cell membrane."],
             ["Protein that serves as an enzyme."]
         ]
+        now_input_type = "text"
 
     elif choice == "sequence":
         samples = [
@@ -152,6 +170,7 @@ def change_input_type(choice: str):
             ["MITLDWEKANGLITTVVQDATTKQVLMVAYMNQESLAKTMATGETWFWSRSRKTLWHKGATSGNIQTVKTIAVDCDADTLLVTVDPAGPACHTGHISCFYRHYPEGKDLT"],
             ["MDLKQYVSEVQDWPKPGVSFKDITTIMDNGEAYGYATDKIVEYAKDRDVDIVVGPEARGFIIGCPVAYSMGIGFAPVRKEGKLPREVIRYEYDLEYGTNVLTMHKDAIKPGQRVLITDDLLATGGTIEAAIKLVEKLGGIVVGIAFIIELKYLNGIEKIKDYDVMSLISYDE"]
         ]
+        now_input_type = "sequence"
 
     elif choice == "structure":
         samples = [
@@ -159,6 +178,7 @@ def change_input_type(choice: str):
             ["dddadcpvpvqkakefeaeppprdtadiaiagpvqvvvcvvpqwhwgqdpvvrdidgqcpvpvqiwrwddwdaddnrryiytythtpahsdpvrhvhpppadvvgpddpd"],
             ["dplvvqwdwdaqpphhpdtdthcvscvvppvslvvqlvvvlvvcvvqvaqeeeeepdqrcsnrvsscvvvvhyywykyfpppddaawdwdwdddppgitiiithlpseaaageyeyegaeqalqprvlrvvvrcvvnnyddaeyeyqeyevcrvncvsvvvhhydyvyydpd"]
         ]
+        now_input_type = "structure"
     
     # Set visibility of upload button
     if choice == "text":
@@ -178,6 +198,9 @@ def load_example(example_id):
 def change_output_type(query_type: str, subsection_type: str):
     nprobe_visible = check_index_ivf(query_type, subsection_type)
     subsection_visible = True if query_type == "text" else False
+    
+    global now_output_type
+    now_output_type = query_type
     
     return (
         gr.update(visible=subsection_visible), 
@@ -210,6 +233,7 @@ def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
     # return nprobe_visible
     return False
 
+
 def change_db_type(query_type: str, subsection_type: str, db_type: str):
     """
     Change the database to search.
@@ -220,6 +244,8 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
     now_db[query_type] = db_type
     
     if query_type == "text":
+        global now_subsection_type
+        now_subsection_type = "Function"
         subsection_update = gr.update(choices=list(valid_subsections[now_db["text"]]), value="Function")
     else:
         subsection_update = gr.update(visible=False)
@@ -228,28 +254,34 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
     return subsection_update, gr.update(visible=nprobe_visible)
 
 
+def change_subsection_type(subsection_type: str):
+    global now_subsection_type
+    now_subsection_type = subsection_type
+
+
 # Build the searching block
 def build_search_module():
     gr.Markdown(f"# Search from Swiss-Prot database (the whole UniProt database will be supported soon)")
     with gr.Row(equal_height=True):
         with gr.Column():
             # Set input type
-            input_type = gr.Radio(["sequence", "structure", "text"], label="Input type (e.g. 'text' means searching based on text descriptions)", value="text")
+            input_type = gr.Radio(["sequence", "structure", "text"], label="Input type (e.g. 'text' means searching based on text descriptions)", value=now_input_type)
 
             with gr.Row():
                 # Set output type
                 query_type = gr.Radio(
                     ["sequence", "structure", "text"],
                     label="Output type (e.g. 'sequence' means returning qualified sequences)",
-                    value="sequence",
+                    value=now_output_type,
                     scale=2,
                 )
-            
-                # If the output type is "text", provide an option to choose the subsection of text
-                subsection_type = gr.Dropdown(valid_subsections[now_db["text"]], label="Subsection of text", value="Function",
-                                              interactive=True, visible=False, scale=0)
                 
-                db_type = gr.Dropdown(all_index["sequence"].keys(), label="Database", value=now_db["sequence"],
+                # If the output type is "text", provide an option to choose the subsection of text
+                subsection_type = gr.Dropdown(valid_subsections[now_db["text"]], label="Subsection of text", value=now_subsection_type,
+                                              interactive=True, visible=False, scale=0)
+                subsection_type.change(fn=change_subsection_type, inputs=[subsection_type])
+                
+                db_type = gr.Dropdown(all_index[now_output_type].keys(), label="Database", value=now_db[now_output_type],
                                               interactive=True, visible=True, scale=0)
 
             with gr.Row():
@@ -262,7 +294,7 @@ def build_search_module():
             
             
             # If the index is of IVF type, provide an option to choose the number of clusters.
-            nprobe_visible = check_index_ivf(query_type.value)
+            nprobe_visible = check_index_ivf(now_output_type, now_subsection_type)
             nprobe = gr.Slider(1, 1000000, 1000,  step=1, visible=nprobe_visible,
                                label="Number of clusters to search (lower value for faster search and higher value for more accurate search)")
             
