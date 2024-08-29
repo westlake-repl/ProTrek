@@ -13,17 +13,24 @@ tmp_file_path = "/tmp/results.tsv"
 tmp_plot_path = "/tmp/histogram.svg"
 
 # Samples for input
-samples = [
-    ["Proteins with zinc bindings."],
-    ["Proteins locating at cell membrane."],
-    ["Protein that serves as an enzyme."]
-]
+samples = {
+    "sequence": [
+            ["MSATAEQNARNPKGKGGFARTVSQRKRKRLFLIGGALAVLAVAVGLMLTAFNQDIRFFRTPADLTEQDMTSGARFRLGGLVEEGSVSRTGSELRFTVTDTIKTVKVVFEGIPPDLFREGQGVVAEGRFGSDGLFRADNVLAKHDENYVPKDLADSLKKKGVWEGK"],
+            ["MITLDWEKANGLITTVVQDATTKQVLMVAYMNQESLAKTMATGETWFWSRSRKTLWHKGATSGNIQTVKTIAVDCDADTLLVTVDPAGPACHTGHISCFYRHYPEGKDLT"],
+            ["MDLKQYVSEVQDWPKPGVSFKDITTIMDNGEAYGYATDKIVEYAKDRDVDIVVGPEARGFIIGCPVAYSMGIGFAPVRKEGKLPREVIRYEYDLEYGTNVLTMHKDAIKPGQRVLITDDLLATGGTIEAAIKLVEKLGGIVVGIAFIIELKYLNGIEKIKDYDVMSLISYDE"]
+        ],
 
-# Databases for different modalities
-now_db = {
-    "sequence": list(all_index["sequence"].keys())[0],
-    "structure": list(all_index["structure"].keys())[0],
-    "text": list(all_index["text"].keys())[0]
+    "structure": [
+            ["dddddddddddddddpdpppvcppvnvvvvvvvvvvvvvvvvvvvvvvvvvvqdpqdedeqvrddpcqqpvqhkhkykafwappqwdddpqkiwtwghnppgiaieieghdappqddhrfikifiaghdpvrhtygdhidtdddpddddvvnvvvcvvvvndpdd"],
+            ["dddadcpvpvqkakefeaeppprdtadiaiagpvqvvvcvvpqwhwgqdpvvrdidgqcpvpvqiwrwddwdaddnrryiytythtpahsdpvrhvhpppadvvgpddpd"],
+            ["dplvvqwdwdaqpphhpdtdthcvscvvppvslvvqlvvvlvvcvvqvaqeeeeepdqrcsnrvsscvvvvhyywykyfpppddaawdwdwdddppgitiiithlpseaaageyeyegaeqalqprvlrvvvrcvvnnyddaeyeyqeyevcrvncvsvvvhhydyvyydpd"]
+        ],
+
+    "text": [
+        ["Proteins with zinc bindings."],
+        ["Proteins locating at cell membrane."],
+        ["Protein that serves as an enzyme."]
+    ],
 }
 
 
@@ -60,12 +67,13 @@ def plot(scores) -> None:
 
 
 # Search from database
-def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str):
+def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str, db: str):
+    print(f"Input type: {input_type}\n Output type: {query_type}\nDatabase: {db}\nSubsection: {subsection_type}")
+
     input_modality = input_type.replace("sequence", "protein")
     with torch.no_grad():
         input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
 
-    db = now_db[query_type]
     if query_type == "text":
         index = all_index["text"][db][subsection_type]["index"]
         ids = all_index["text"][db][subsection_type]["ids"]
@@ -74,7 +82,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         index = all_index[query_type][db]["index"]
         ids = all_index[query_type][db]["ids"]
         
-    if check_index_ivf(query_type, subsection_type):
+    if check_index_ivf(query_type, db, subsection_type):
         if index.nlist < nprobe:
             raise gr.Error(f"The number of clusters to search must be less than or equal to the number of clusters in the index ({index.nlist}).")
         else:
@@ -139,26 +147,6 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
 def change_input_type(choice: str):
     # Change examples if input type is changed
     global samples
-    if choice == "text":
-        samples = [
-            ["Proteins with zinc bindings."],
-            ["Proteins locating at cell membrane."],
-            ["Protein that serves as an enzyme."]
-        ]
-
-    elif choice == "sequence":
-        samples = [
-            ["MSATAEQNARNPKGKGGFARTVSQRKRKRLFLIGGALAVLAVAVGLMLTAFNQDIRFFRTPADLTEQDMTSGARFRLGGLVEEGSVSRTGSELRFTVTDTIKTVKVVFEGIPPDLFREGQGVVAEGRFGSDGLFRADNVLAKHDENYVPKDLADSLKKKGVWEGK"],
-            ["MITLDWEKANGLITTVVQDATTKQVLMVAYMNQESLAKTMATGETWFWSRSRKTLWHKGATSGNIQTVKTIAVDCDADTLLVTVDPAGPACHTGHISCFYRHYPEGKDLT"],
-            ["MDLKQYVSEVQDWPKPGVSFKDITTIMDNGEAYGYATDKIVEYAKDRDVDIVVGPEARGFIIGCPVAYSMGIGFAPVRKEGKLPREVIRYEYDLEYGTNVLTMHKDAIKPGQRVLITDDLLATGGTIEAAIKLVEKLGGIVVGIAFIIELKYLNGIEKIKDYDVMSLISYDE"]
-        ]
-
-    elif choice == "structure":
-        samples = [
-            ["dddddddddddddddpdpppvcppvnvvvvvvvvvvvvvvvvvvvvvvvvvvqdpqdedeqvrddpcqqpvqhkhkykafwappqwdddpqkiwtwghnppgiaieieghdappqddhrfikifiaghdpvrhtygdhidtdddpddddvvnvvvcvvvvndpdd"],
-            ["dddadcpvpvqkakefeaeppprdtadiaiagpvqvvvcvvpqwhwgqdpvvrdidgqcpvpvqiwrwddwdaddnrryiytythtpahsdpvrhvhpppadvvgpddpd"],
-            ["dplvvqwdwdaqpphhpdtdthcvscvvppvslvvqlvvvlvvcvvqvaqeeeeepdqrcsnrvsscvvvvhyywykyfpppddaawdwdwdddppgitiiithlpseaaageyeyegaeqalqprvlrvvvrcvvnnyddaeyeyqeyevcrvncvsvvvhhydyvyydpd"]
-        ]
     
     # Set visibility of upload button
     if choice == "text":
@@ -166,27 +154,28 @@ def change_input_type(choice: str):
     else:
         visible = True
     
-    return gr.update(samples=samples), "", gr.update(visible=visible), gr.update(visible=visible)
+    return gr.update(samples=samples[choice]), "", gr.update(visible=visible), gr.update(visible=visible)
 
 
 # Load example from dataset
 def load_example(example_id):
-    return samples[example_id][0]
+    return example_id[0]
  
  
 # Change the visibility of subsection type
 def change_output_type(query_type: str, subsection_type: str):
-    nprobe_visible = check_index_ivf(query_type, subsection_type)
+    db_type = list(all_index[query_type].keys())[0]
+    nprobe_visible = check_index_ivf(query_type, db_type, subsection_type)
     subsection_visible = True if query_type == "text" else False
-    
+
     return (
-        gr.update(visible=subsection_visible), 
+        gr.update(visible=subsection_visible),
         gr.update(visible=nprobe_visible),
-        gr.update(choices=list(all_index[query_type].keys()), value=now_db[query_type])
+        gr.update(choices=list(all_index[query_type].keys()), value=db_type)
     )
 
 
-def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
+def check_index_ivf(index_type: str, db: str, subsection_type: str = None) -> bool:
     """
     Check if the index is of IVF type.
     Args:
@@ -196,7 +185,6 @@ def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
     Returns:
         Whether the index is of IVF type or not.
     """
-    db = now_db[index_type]
     if index_type == "sequence":
         index = all_index["sequence"][db]["index"]
     
@@ -206,9 +194,10 @@ def check_index_ivf(index_type: str, subsection_type: str = None) -> bool:
     elif index_type == "text":
         index = all_index["text"][db][subsection_type]["index"]
     
-    nprobe_visible = True if hasattr(index, "nprobe") else False
+    # nprobe_visible = True if hasattr(index, "nprobe") else False
     # return nprobe_visible
     return False
+
 
 def change_db_type(query_type: str, subsection_type: str, db_type: str):
     """
@@ -217,14 +206,12 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
         query_type: The output type.
         db_type: The database to search.
     """
-    now_db[query_type] = db_type
-    
     if query_type == "text":
-        subsection_update = gr.update(choices=list(valid_subsections[now_db["text"]]), value="Function")
+        subsection_update = gr.update(choices=list(valid_subsections[db_type]), value="Function")
     else:
         subsection_update = gr.update(visible=False)
     
-    nprobe_visible = check_index_ivf(query_type, subsection_type)
+    nprobe_visible = check_index_ivf(query_type, db_type, subsection_type)
     return subsection_update, gr.update(visible=nprobe_visible)
 
 
@@ -246,10 +233,12 @@ def build_search_module():
                 )
             
                 # If the output type is "text", provide an option to choose the subsection of text
-                subsection_type = gr.Dropdown(valid_subsections[now_db["text"]], label="Subsection of text", value="Function",
+                text_db = list(all_index["text"].keys())[0]
+                sequence_db = list(all_index["sequence"].keys())[0]
+                subsection_type = gr.Dropdown(valid_subsections[text_db], label="Subsection of text", value="Function",
                                               interactive=True, visible=False, scale=0)
                 
-                db_type = gr.Dropdown(all_index["sequence"].keys(), label="Database", value=now_db["sequence"],
+                db_type = gr.Dropdown(all_index["sequence"].keys(), label="Database", value=sequence_db,
                                               interactive=True, visible=True, scale=0)
 
             with gr.Row():
@@ -262,7 +251,7 @@ def build_search_module():
             
             
             # If the index is of IVF type, provide an option to choose the number of clusters.
-            nprobe_visible = check_index_ivf(query_type.value)
+            nprobe_visible = check_index_ivf(query_type.value, db_type.value)
             nprobe = gr.Slider(1, 1000000, 1000,  step=1, visible=nprobe_visible,
                                label="Number of clusters to search (lower value for faster search and higher value for more accurate search)")
             
@@ -278,7 +267,7 @@ def build_search_module():
             topk = gr.Slider(1, 1000000, 5,  step=1, label="Retrieve top k results")
 
             # Provide examples
-            examples = gr.Dataset(samples=samples, components=[input], type="index", label="Input examples")
+            examples = gr.Dataset(samples=samples["text"], components=[input], label="Input examples")
             
             # Add click event to examples
             examples.click(fn=load_example, inputs=[examples], outputs=input)
@@ -298,7 +287,7 @@ def build_search_module():
                 # Plot the distribution of scores
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
-        search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type],
+        search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type, db_type],
                       outputs=[results, download_btn, histogram])
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
