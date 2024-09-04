@@ -7,6 +7,7 @@
 The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://www.biorxiv.org/content/10.1101/2024.05.30.596740v1).
 
 Online Demo: https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50
+ColabProTrek: https://colab.research.google.com/drive/1On2xQU0d7351bIBgZpz2T0VUp2gZium0?usp=sharing
 
 If you have any question about the paper or the code, feel free to raise an issue!
 
