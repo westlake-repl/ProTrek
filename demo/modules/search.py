@@ -129,7 +129,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     for rank in top_ranks:
         now_id = ids[rank]
         if query_type == "text":
-            topk_ids.append(now_id)
+            topk_ids.append(now_id.replace("|", "\\|"))
         else:
             if db != "PDB":
                 # Provide link to uniprot website
@@ -138,14 +138,14 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
                 # Provide link to pdb website
                 pdb_id = now_id.split("-")[0]
                 topk_ids.append(f"[{now_id}](https://www.rcsb.org/structure/{pdb_id})")
-    
+     
     limit = 1000
     df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": top_scores[:limit]})
     if len(topk_ids) > limit:
         info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
                                index=[1000])
         df = pd.concat([df, info_df], axis=0)
-    
+
     output = df.to_markdown()
     return (output,
             gr.DownloadButton(label="Download results", value=tmp_file_path, visible=True, scale=0),
