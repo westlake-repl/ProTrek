@@ -48,7 +48,15 @@ def plot(scores) -> None:
     plt.title('Distribution of similarity scores in the database', fontsize=15)
     plt.xlabel('Similarity score', fontsize=15)
     plt.ylabel('Density', fontsize=15)
+    y_ed = plt.gca().get_ylim()[-1]
+    plt.ylim(-0.05, y_ed)
 
+    # Add note
+    x_st = plt.gca().get_xlim()[0]
+    text = ("Note: For the \"UniRef50\" and \"Uncharacterized\" databases, the figure illustrates\n "
+            "only top-ranked clusters (identified using Faiss), whereas for other databases, it\n "
+            "displays the distribution across all samples.")
+    plt.text(x_st, -0.04, text, fontsize=8)
     mu, std = norm.fit(scores)
 
     # Plot the Gaussian
@@ -231,7 +239,7 @@ def build_search_module():
                     value="sequence",
                     scale=2,
                 )
-            
+
                 # If the output type is "text", provide an option to choose the subsection of text
                 text_db = list(all_index["text"].keys())[0]
                 sequence_db = list(all_index["sequence"].keys())[0]
