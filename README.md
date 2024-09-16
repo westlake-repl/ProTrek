@@ -10,6 +10,7 @@ ProTrek4Search: https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_Un
 
 ColabProTrek: https://colab.research.google.com/drive/1On2xQU0d7351bIBgZpz2T0VUp2gZium0?usp=sharing
 
+ColabProTrek has joined [OPMC](https://theopmc.github.io/).
 If you have any question about the paper or the code, feel free to raise an issue!
 
 <details open><summary><b>Table of contents</b></summary>
