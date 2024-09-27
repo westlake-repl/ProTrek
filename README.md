@@ -4,9 +4,13 @@
 <a href="https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
 <a href="https://cbirt.net/charting-the-protein-universe-with-protreks-tri-modal-contrastive-learning/" alt="blog"><img src="https://img.shields.io/badge/Blog-Medium-purple" /></a> 
 
-The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://www.biorxiv.org/content/10.1101/2024.05.30.596740v1).
+The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://www.biorxiv.org/content/10.1101/2024.05.30.596740v2).
 
-Online Demo: https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50
+ProTrek4Search: https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50
+
+ColabProTrek: https://colab.research.google.com/drive/1On2xQU0d7351bIBgZpz2T0VUp2gZium0?usp=sharing
+
+ColabProTrek has joined [OPMC](https://theopmc.github.io/). If you find it useful for your research, please consider also cite the original OPMC [paper](https://www.biorxiv.org/content/10.1101/2024.05.24.595648v4).
 
 If you have any question about the paper or the code, feel free to raise an issue!
 
@@ -30,7 +34,7 @@ pushing negative samples farther apart in the latent space.
 
 ProTrek achieves over 30x and 60x improvements in sequence-function and function-sequence retrieval, is 100x faster than Foldseek and MMseqs2 in protein-protein search, and outperforms ESM-2 in 9 of 11 downstream prediction tasks.
 
-<img src="figure/img.png" style="zoom:33%;" />
+<img src="figure/img.jpg" style="zoom:33%;" />
 
 ## Environment installation
 ### Create a virtual environment
