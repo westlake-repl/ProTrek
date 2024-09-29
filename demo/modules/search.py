@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats import norm
 from .init_model import model, all_index, valid_subsections
 from .blocks import upload_pdb_button, parse_pdb_file
+from Bio.Align import PairwiseAligner
 
 
 tmp_file_path = "/tmp/results.tsv"
@@ -74,6 +75,17 @@ def plot(scores) -> None:
     plt.cla()
 
 
+# Calculate protein sequence identity
+def calc_seq_identity(seq1: str, seq2: str) -> float:
+    aligner = PairwiseAligner()
+    aligner.mode = "local"
+
+    alignment = next(aligner.align(seq1, seq2))
+    a1, a2 = alignment
+    identity = sum(1 for a, b in zip(a1, a2) if a == b) / len(a1)
+    return identity
+
+
 # Search from database
 def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str, db: str):
     print(f"Input type: {input_type}\n Output type: {query_type}\nDatabase: {db}\nSubsection: {subsection_type}")
@@ -89,8 +101,8 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     else:
         index = all_index[query_type][db]["index"]
         ids = all_index[query_type][db]["ids"]
-        
-    if check_index_ivf(query_type, db, subsection_type):
+
+    if hasattr(index, "nprobe"):
         if index.nlist < nprobe:
             raise gr.Error(f"The number of clusters to search must be less than or equal to the number of clusters in the index ({index.nlist}).")
         else:
@@ -119,15 +131,25 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     
     # Write the results to a temporary file for downloading
     with open(tmp_file_path, "w") as w:
-        w.write("Id\tMatching score\n")
+        if query_type == "text":
+            w.write("Id\tMatching score\n")
+        else:
+            w.write("Id\tSequence\tLength\tMatching score\n")
+
         for i in range(topk):
             rank = top_ranks[i]
-            w.write(f"{ids[rank]}\t{top_scores[i]}\n")
-    
+            if query_type == "text":
+                w.write(f"{ids.get(rank)}\t{top_scores[i]}\n")
+            else:
+                id, seq, length = ids.get(rank).split("\t")
+                w.write(f"{id}\t{seq}\t{length}\t{top_scores[i]}\n")
+
     # Get topk ids
     topk_ids = []
+    topk_seqs = []
+    topk_lengths = []
     for rank in top_ranks:
-        now_id = ids[rank]
+        now_id = ids.get(rank).split("\t")[0]
         if query_type == "text":
             topk_ids.append(now_id)
         else:
@@ -138,13 +160,41 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
                 # Provide link to pdb website
                 pdb_id = now_id.split("-")[0]
                 topk_ids.append(f"[{now_id}](https://www.rcsb.org/structure/{pdb_id})")
-    
+
+        if query_type != "text":
+            _, ori_seq, ori_len = ids.get(rank).split("\t")
+            seq = ori_seq[:20] + "..." if len(ori_seq) > 20 else ori_seq
+            topk_seqs.append(seq)
+            topk_lengths.append(ori_len)
+
+    # If both the input and output are protein sequences, calculate the sequence identity
+    if input_type == "sequence" and query_type == "sequence":
+        seq_identities = [calc_seq_identity(input, ids.get(rank).split("\t")[1]) for rank in top_ranks]
+        seq_identities = [f"{identity*100:.2f}%" for identity in seq_identities]
+
     limit = 1000
-    df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": top_scores[:limit]})
-    if len(topk_ids) > limit:
-        info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
-                               index=[1000])
-        df = pd.concat([df, info_df], axis=0)
+    if query_type == "text":
+        df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": top_scores[:limit]})
+        if len(topk_ids) > limit:
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
+                                   index=[1000])
+            df = pd.concat([df, info_df], axis=0)
+
+    elif input_type == "sequence" and query_type == "sequence":
+        df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit],
+                           "Length": topk_lengths[:limit], "Sequence identity": seq_identities[:limit],
+                          "Matching score": top_scores[:limit]})
+        if len(topk_ids) > limit:
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."],
+                                    "Sequence identity": ["..."], "Matching score": ["..."]}, index=[1000])
+            df = pd.concat([df, info_df], axis=0)
+
+    else:
+        df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit], "Length": topk_lengths[:limit], "Matching score": top_scores[:limit]})
+        if len(topk_ids) > limit:
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."], "Matching score": ["..."]},
+                                   index=[1000])
+            df = pd.concat([df, info_df], axis=0)
     
     output = df.to_markdown()
     return (output,
