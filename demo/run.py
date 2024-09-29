@@ -21,4 +21,4 @@ with gr.Blocks() as demo:
 
 if __name__ == '__main__':
     # Run the demo
-    demo.launch()
+    demo.launch(server_name="0.0.0.0")

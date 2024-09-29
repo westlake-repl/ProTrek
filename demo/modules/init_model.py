@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import yaml
 import glob
+import torch
 
 from easydict import EasyDict
 from utils.constants import sequence_level
@@ -49,7 +50,7 @@ def load_index():
 
         index_path = f"{index_dir}/sequence.index"
         if os.path.exists(index_path):
-            sequence_index = FaissIndex(index_path)
+            sequence_index = FaissIndex(index_path, nprobe=db.get("nprobe", 1))
 
             id_path = f"{index_dir}/ids.tsv"
             ids = FileReader(id_path)
@@ -60,15 +61,18 @@ def load_index():
             # The index contains multiple files
             index_files = []
             ids = []
-            for rank in os.listdir(index_dir):
-                index_path = f"{index_dir}/{rank}/sequence.index"
+            for dir_name in os.listdir(index_dir):
+                if not os.path.isdir(f"{index_dir}/{dir_name}"):
+                    continue
+                    
+                index_path = f"{index_dir}/{dir_name}/sequence.index"
                 index_files.append(index_path)
 
-                id_path = f"{index_dir}/{rank}/ids.tsv"
+                id_path = f"{index_dir}/{dir_name}/ids.tsv"
                 ids.append(FileReader(id_path))
 
-            sequence_index = FaissIndex(index_files)
-            all_index["sequence"][f"{db_name}_{rank}"] = {"index": sequence_index, "ids": ids}
+            sequence_index = FaissIndex(index_files, nprobe=db.get("nprobe", 1))
+            all_index["sequence"][db_name] = {"index": sequence_index, "ids": ids}
 
     # Load protein structure index
     print("Loading structure index...")
@@ -78,7 +82,7 @@ def load_index():
         index_dir = db["index_dir"]
 
         index_path = f"{index_dir}/structure.index"
-        structure_index = load_faiss_index(index_path)
+        structure_index = FaissIndex(index_path)
 
         id_path = f"{index_dir}/ids.tsv"
         ids = FileReader(id_path)
@@ -102,7 +106,7 @@ def load_index():
             if not os.path.exists(index_path):
                 continue
 
-            text_index = load_faiss_index(index_path)
+            text_index = FaissIndex(index_path)
             
             id_path = f"{text_dir}/{subsection.replace(' ', '_')}_ids.tsv"
             text_ids = FileReader(id_path)
@@ -123,7 +127,7 @@ config_path = f"{root_dir}/demo/config.yaml"
 with open(config_path, 'r', encoding='utf-8') as r:
     config = EasyDict(yaml.safe_load(r))
 
-device = "cuda"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 print("Loading model...")
 model = load_model()

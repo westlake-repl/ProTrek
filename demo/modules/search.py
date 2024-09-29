@@ -102,32 +102,23 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         index = all_index[query_type][db]["index"]
         ids = all_index[query_type][db]["ids"]
 
-    if hasattr(index, "nprobe"):
-        if index.nlist < nprobe:
-            raise gr.Error(f"The number of clusters to search must be less than or equal to the number of clusters in the index ({index.nlist}).")
-        else:
-            index.nprobe = nprobe
+    if hasattr(index.index_list[0], "nprobe"):
+        # index.nprobe = nprobe
+        max_num = max(topk, index.nprobe*256)
+    else:
+        max_num = index.ntotal
     
     if topk > index.ntotal:
         raise gr.Error(f"You cannot retrieve more than the database size ({index.ntotal}).")
     
     # Retrieve all scores to plot the distribution
-    scores, ranks = index.search(input_embedding, index.ntotal)
-    scores, ranks = scores[0], ranks[0]
+    # results, all_scores = index.index_list[0].search(input_embedding, max_num)
+    results, all_scores = index.search(input_embedding, topk, max_num)
+    for item in results:
+        item[1] /= model.temperature.item()
     
-    # Remove inf values
-    selector = scores > -1
-    scores = scores[selector]
-    ranks = ranks[selector]
-    scores = scores / model.temperature.item()
-    plot(scores)
-    
-    top_scores = scores[:topk]
-    top_ranks = ranks[:topk]
-    
-    # ranks = [list(range(topk))]
-    # ids = ["P12345"] * topk
-    # scores = torch.randn(topk).tolist()
+    all_scores /= model.temperature.item()
+    plot(all_scores)
     
     # Write the results to a temporary file for downloading
     with open(tmp_file_path, "w") as w:
@@ -135,46 +126,58 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             w.write("Id\tMatching score\n")
         else:
             w.write("Id\tSequence\tLength\tMatching score\n")
-
+        
         for i in range(topk):
-            rank = top_ranks[i]
+            index_rk, score, rank = results[i]
             if query_type == "text":
-                w.write(f"{ids.get(rank)}\t{top_scores[i]}\n")
+                w.write(f"{ids[index_rk].get(rank)}\t{score}\n")
             else:
-                id, seq, length = ids.get(rank).split("\t")
-                w.write(f"{id}\t{seq}\t{length}\t{top_scores[i]}\n")
+                id, seq, length = ids[index_rk].get(rank).split("\t")
+                w.write(f"{id}\t{seq}\t{length}\t{score}\n")
 
     # Get topk ids
     topk_ids = []
+    topk_scores = []
     topk_seqs = []
     topk_lengths = []
-    for rank in top_ranks:
-        now_id = ids.get(rank).split("\t")[0]
+    for i in range(topk):
+        index_rk, score, rank = results[i]
+        now_id = ids[index_rk].get(rank).split("\t")[0].replace("|", "\\|")
+        now_id = now_id[:20] + "..." if len(now_id) > 20 else now_id
+        topk_scores.append(score)
+        
         if query_type == "text":
             topk_ids.append(now_id)
         else:
-            if db != "PDB":
+            if db in ["UniRef50", "Uncharacterized", "Swiss-Prot"]:
                 # Provide link to uniprot website
                 topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
-            else:
+            elif db == "PDB":
                 # Provide link to pdb website
                 pdb_id = now_id.split("-")[0]
                 topk_ids.append(f"[{now_id}](https://www.rcsb.org/structure/{pdb_id})")
+            else:
+                topk_ids.append(now_id)
 
         if query_type != "text":
-            _, ori_seq, ori_len = ids.get(rank).split("\t")
+            _, ori_seq, ori_len = ids[index_rk].get(rank).split("\t")
             seq = ori_seq[:20] + "..." if len(ori_seq) > 20 else ori_seq
             topk_seqs.append(seq)
             topk_lengths.append(ori_len)
 
     # If both the input and output are protein sequences, calculate the sequence identity
     if input_type == "sequence" and query_type == "sequence":
-        seq_identities = [calc_seq_identity(input, ids.get(rank).split("\t")[1]) for rank in top_ranks]
+        seq_identities = []
+        for i in range(topk):
+            index_rk, score, rank = results[i]
+            hit_seq = ids[index_rk].get(rank).split("\t")[1]
+            seq_identities.append(calc_seq_identity(input, hit_seq))
+            
         seq_identities = [f"{identity*100:.2f}%" for identity in seq_identities]
 
     limit = 1000
     if query_type == "text":
-        df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": top_scores[:limit]})
+        df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": topk_scores[:limit]})
         if len(topk_ids) > limit:
             info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
                                    index=[1000])
@@ -183,14 +186,14 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     elif input_type == "sequence" and query_type == "sequence":
         df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit],
                            "Length": topk_lengths[:limit], "Sequence identity": seq_identities[:limit],
-                          "Matching score": top_scores[:limit]})
+                          "Matching score": topk_scores[:limit]})
         if len(topk_ids) > limit:
             info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."],
                                     "Sequence identity": ["..."], "Matching score": ["..."]}, index=[1000])
             df = pd.concat([df, info_df], axis=0)
 
     else:
-        df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit], "Length": topk_lengths[:limit], "Matching score": top_scores[:limit]})
+        df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit], "Length": topk_lengths[:limit], "Matching score": topk_scores[:limit]})
         if len(topk_ids) > limit:
             info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."], "Matching score": ["..."]},
                                    index=[1000])
