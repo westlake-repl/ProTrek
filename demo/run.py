@@ -16,7 +16,7 @@ with gr.Blocks() as demo:
     build_search_module()
     build_score_computation()
     build_TMalign()
-    build_cli()
+    # build_cli()
 
 
 if __name__ == '__main__':
