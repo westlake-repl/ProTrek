@@ -7,6 +7,8 @@ import glob
 
 from easydict import EasyDict
 from utils.constants import sequence_level
+from utils.file_reader import FileReader
+from utils.faiss_index import FaissIndex
 from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
 from tqdm import tqdm
 
@@ -46,12 +48,27 @@ def load_index():
         index_dir = db["index_dir"]
 
         index_path = f"{index_dir}/sequence.index"
-        sequence_index = load_faiss_index(index_path)
+        if os.path.exists(index_path):
+            sequence_index = FaissIndex(index_path)
 
-        id_path = f"{index_dir}/ids.tsv"
-        uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
+            id_path = f"{index_dir}/ids.tsv"
+            ids = FileReader(id_path)
 
-        all_index["sequence"][db_name] = {"index": sequence_index, "ids": uniprot_ids}
+            all_index["sequence"][db_name] = {"index": sequence_index, "ids": [ids]}
+
+        else:
+            # The index contains multiple files
+            index_files = []
+            ids = []
+            for rank in os.listdir(index_dir):
+                index_path = f"{index_dir}/{rank}/sequence.index"
+                index_files.append(index_path)
+
+                id_path = f"{index_dir}/{rank}/ids.tsv"
+                ids.append(FileReader(id_path))
+
+            sequence_index = FaissIndex(index_files)
+            all_index["sequence"][f"{db_name}_{rank}"] = {"index": sequence_index, "ids": ids}
 
     # Load protein structure index
     print("Loading structure index...")
@@ -64,9 +81,9 @@ def load_index():
         structure_index = load_faiss_index(index_path)
 
         id_path = f"{index_dir}/ids.tsv"
-        uniprot_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
+        ids = FileReader(id_path)
 
-        all_index["structure"][db_name] = {"index": structure_index, "ids": uniprot_ids}
+        all_index["structure"][db_name] = {"index": structure_index, "ids": [ids]}
     
     # Load text index
     all_index["text"] = {}
@@ -84,13 +101,13 @@ def load_index():
             index_path = f"{text_dir}/{subsection.replace(' ', '_')}.index"
             if not os.path.exists(index_path):
                 continue
-                
+
             text_index = load_faiss_index(index_path)
             
             id_path = f"{text_dir}/{subsection.replace(' ', '_')}_ids.tsv"
-            text_ids = pd.read_csv(id_path, sep="\t", header=None).values.flatten()
+            text_ids = FileReader(id_path)
             
-            all_index["text"][db_name][subsection] = {"index": text_index, "ids": text_ids}
+            all_index["text"][db_name][subsection] = {"index": text_index, "ids": [text_ids]}
             valid_subsections[db_name].add(subsection)
     
     # Sort valid_subsections
