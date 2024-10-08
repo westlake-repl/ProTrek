@@ -41,7 +41,7 @@ sequence_index_dir:
     nprobe: 1000
 
   - name: OMG_prot50
-    index_dir: /sujin/Datasets/ProTrek/faiss_index/OMG_prot50/ProTrek_650M_UniRef50/sequence
+    index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/OMG_prot50/ProTrek_650M_UniRef50/sequence
     nprobe: 100
 
   - name: PDB

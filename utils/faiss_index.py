@@ -9,7 +9,10 @@ class FaissIndex:
     """
     Wrapper for Faiss index
     """
-    def __init__(self, index_path: Union[str, List[str]], IO_FLAG_MMAP: bool = True, nprobe: int = 1):
+    def __init__(self,
+                 index_path: Union[str, List[str]],
+                 IO_FLAG_MMAP: bool = True,
+                 nprobe: int = 1):
         """
         Initialize Faiss index
         Args:

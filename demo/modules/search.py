@@ -54,9 +54,9 @@ def plot(scores) -> None:
 
     # Add note
     x_st = plt.gca().get_xlim()[0]
-    text = ("Note: For the \"UniRef50\" and \"Uncharacterized\" databases, the figure illustrates\n "
-            "only top-ranked clusters (identified using Faiss), whereas for other databases, it\n "
-            "displays the distribution across all samples.")
+    text = ("Note: For the \"PDB\" and \"Swiss-Prot\" databases, the figure shows scores of\n "
+            "all samples. For other databases, it displays the distribution of top-ranked\n "
+            "clusters (identified using Faiss).")
     plt.text(x_st, -0.04, text, fontsize=8)
     mu, std = norm.fit(scores)
 
@@ -119,18 +119,33 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     
     all_scores /= model.temperature.item()
     plot(all_scores)
+
+    # If both the input and output are protein sequences, calculate the sequence identity
+    if input_type == "sequence" and query_type == "sequence":
+        seq_identities = []
+        for i in range(topk):
+            index_rk, score, rank = results[i]
+            hit_seq = ids[index_rk].get(rank).split("\t")[1]
+            seq_identities.append(calc_seq_identity(input, hit_seq))
+
+        seq_identities = [f"{identity * 100:.2f}%" for identity in seq_identities]
     
     # Write the results to a temporary file for downloading
     with open(tmp_file_path, "w") as w:
         if query_type == "text":
             w.write("Id\tMatching score\n")
         else:
-            w.write("Id\tSequence\tLength\tMatching score\n")
+            w.write("Id\tSequence\tLength\tSequence identity\tMatching score\n")
         
         for i in range(topk):
             index_rk, score, rank = results[i]
             if query_type == "text":
                 w.write(f"{ids[index_rk].get(rank)}\t{score}\n")
+
+            elif input_type == "sequence" and query_type == "sequence":
+                id, seq, length = ids[index_rk].get(rank).split("\t")
+                w.write(f"{id}\t{seq}\t{length}\t{seq_identities[i]}\t{score}\n")
+
             else:
                 id, seq, length = ids[index_rk].get(rank).split("\t")
                 w.write(f"{id}\t{seq}\t{length}\t{score}\n")
@@ -143,9 +158,10 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     for i in range(topk):
         index_rk, score, rank = results[i]
         now_id = ids[index_rk].get(rank).split("\t")[0].replace("|", "\\|")
-        now_id = now_id[:20] + "..." if len(now_id) > 20 else now_id
+        if query_type != "text":
+            now_id = now_id[:20] + "..." if len(now_id) > 20 else now_id
         topk_scores.append(score)
-        
+
         if query_type == "text":
             topk_ids.append(now_id)
         else:
@@ -164,16 +180,6 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             seq = ori_seq[:20] + "..." if len(ori_seq) > 20 else ori_seq
             topk_seqs.append(seq)
             topk_lengths.append(ori_len)
-
-    # If both the input and output are protein sequences, calculate the sequence identity
-    if input_type == "sequence" and query_type == "sequence":
-        seq_identities = []
-        for i in range(topk):
-            index_rk, score, rank = results[i]
-            hit_seq = ids[index_rk].get(rank).split("\t")[1]
-            seq_identities.append(calc_seq_identity(input, hit_seq))
-            
-        seq_identities = [f"{identity*100:.2f}%" for identity in seq_identities]
 
     limit = 1000
     if query_type == "text":
@@ -278,7 +284,7 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
 
 # Build the searching block
 def build_search_module():
-    gr.Markdown(f"# Search from Swiss-Prot database (the whole UniProt database will be supported soon)")
+    gr.Markdown(f"# Search from databases")
     with gr.Row(equal_height=True):
         with gr.Column():
             # Set input type
@@ -349,6 +355,6 @@ def build_search_module():
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
         search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type, db_type],
-                      outputs=[results, download_btn, histogram])
+                      outputs=[results, download_btn, histogram], concurrency_limit=1)
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])

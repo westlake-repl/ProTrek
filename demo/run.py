@@ -4,6 +4,7 @@ if root_dir not in sys.path:
     sys.path.append(root_dir)
 
 import gradio as gr
+import os
 
 from modules.search import build_search_module
 from modules.compute_score import build_score_computation
