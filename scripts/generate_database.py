@@ -3,38 +3,114 @@ import sys
 
 sys.path += ["."]
 
-import re
 import argparse
 import torch
+import faiss
+import glob
 import numpy as np
-import json
 
-from transformers import AutoTokenizer, EsmForProteinFolding
-from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OFProtein
-from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
 from Bio import SeqIO
 from utils.mpr import MultipleProcessRunnerSimplifier
+from tqdm import tqdm
+from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
 
 
 def main(args):
-    if os.path.isdir(args.input):
-        print("Input is a directory, will predict all fasta files in the directory.")
-
-    else:
-        print("Input is a fasta file.")
-
     n_process = 1
     use_gpu = False
-    if "cpu" in args.device.lower():
-        print("CUDA is not specified. Will use CPU.")
-
-    else:
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    print(f"Used device: {args.device}")
+    if "cpu" not in args.device.lower():
         use_gpu = True
         os.environ["CUDA_VISIBLE_DEVICES"] = args.device
         gpu_num = len(args.device.split(","))
-        if gpu_num > 1:
-            print("Multi-GPU is expected, will use multiple GPUs.")
-            n_process = gpu_num
+        n_process = gpu_num
+    
+    assert use_gpu, ("We strongly recommend to use GPU to build index. Using CPU may take extremely long time."
+                     "You can set the device by passing --device argument. e.g. --device 0,1,2,3")
+    
+    ##########################################
+    #         Load protein sequences         #
+    ##########################################
+    os.makedirs(args.save_dir, exist_ok=True)
+    id_path = os.path.join(args.save_dir, "ids.tsv")
+    cnt = 0
+    items = []
+    warning_flag = False
+    with open(id_path, "w") as w:
+        for record in tqdm(SeqIO.parse(args.fasta, "fasta")):
+            id = record.id
+            seq = str(record.seq)
+            if len(seq) > 2048:
+                if not warning_flag:
+                    print(f"Warning: Sequence greater than 2048 will be skipped.")
+                    warning_flag = True
+                continue
+            
+            w.write(f"{id}\t{seq}\t{len(seq)}\n")
+            items.append((cnt, seq))
+            cnt += 1
+
+    assert cnt < 10000000, "The number of sequences should be less than 10,000,000."
+    
+    ##########################################
+    #       Compute protein embeddings       #
+    ##########################################
+    # Load the model
+    model_config = {
+        "protein_config": glob.glob("weights/ProTrek_650M_UniRef50/esm2_*")[0],
+        "text_config": "weights/ProTrek_650M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+        "structure_config": glob.glob("weights/ProTrek_650M_UniRef50/foldseek_*")[0],
+        "load_protein_pretrained": False,
+        "load_text_pretrained": False,
+        "from_checkpoint": glob.glob("weights/ProTrek_650M_UniRef50/*.pt")[0]
+    }
+
+    model = ProTrekTrimodalModel(**model_config)
+    model.eval()
+    
+    # Create empty embeddings
+    npy_path = os.path.join(args.save_dir, f"embeddings_{cnt}.npy")
+    if os.path.exists(npy_path):
+        embeddings = np.memmap(npy_path, dtype=np.float32, mode="r+", shape=(cnt, 1024))
+    else:
+        embeddings = np.memmap(npy_path, dtype=np.float32, mode="write", shape=(cnt, 1024))
+    
+    # Fill embeddings
+    def do(process_id, idx, item, writer):
+        if model.device == torch.device("cpu"):
+            device = f"cuda:{process_id % torch.cuda.device_count()}"
+            model.to(device)
+
+        i, seq = item
+        with torch.no_grad():
+            # Skip pre-computed embeddings
+            if embeddings[i].sum() != 0:
+                return
+            
+            seq_repr = model.get_protein_repr([seq])
+            embeddings[i] = seq_repr.cpu().numpy()
+
+    mprs = MultipleProcessRunnerSimplifier(items[:2000], do, n_process=n_process, split_strategy="queue")
+    mprs.run()
+    
+    ##########################################
+    #           Build Faiss index            #
+    ##########################################
+    # Initialize the index
+    quantizer = faiss.IndexFlatIP(1024)
+    index = faiss.IndexIVFFlat(quantizer, 1024, 65536, faiss.METRIC_INNER_PRODUCT)
+    
+    res = faiss.StandardGpuResources()
+    index = faiss.index_cpu_to_gpu(res, 0, index)
+    
+    print("Building the index...")
+    index.train(embeddings)
+    index = faiss.index_gpu_to_cpu(index)
+    print(index.is_trained, flush=True)
+    print(index.ntotal, flush=True)
+    raise
+
 
     print("Loading model from {}...".format(args.model_path))
     tokenizer, model = load_model(args.model_path)
