@@ -54,7 +54,7 @@ class FaissIndex:
         for index_rk, index in enumerate(tqdm(self.index_list, "Searching...")):
             if hasattr(index, "nprobe"):
                 index.nprobe = self.nprobe
-                
+
             scores, ranks = index.search(query, max_num)
             scores, ranks = scores[0], ranks[0]
             

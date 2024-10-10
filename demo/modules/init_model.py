@@ -29,16 +29,6 @@ def load_model():
     return model
 
 
-def load_faiss_index(index_path: str):
-    if config.faiss_config.IO_FLAG_MMAP:
-        index = faiss.read_index(index_path, faiss.IO_FLAG_MMAP)
-    else:
-        index = faiss.read_index(index_path)
-        
-    index.metric_type = faiss.METRIC_INNER_PRODUCT
-    return index
-
-
 def load_index():
     all_index = {}
     

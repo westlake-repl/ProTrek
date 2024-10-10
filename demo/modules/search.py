@@ -111,8 +111,11 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     if topk > index.ntotal:
         raise gr.Error(f"You cannot retrieve more than the database size ({index.ntotal}).")
     
+    print(index)
     # Retrieve all scores to plot the distribution
     # results, all_scores = index.index_list[0].search(input_embedding, max_num)
+    print(input)
+    print(topk, max_num)
     results, all_scores = index.search(input_embedding, topk, max_num)
     for item in results:
         item[1] /= model.temperature.item()

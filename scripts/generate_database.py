@@ -46,13 +46,13 @@ def main(args):
                     print(f"Warning: Sequence greater than 2048 will be skipped.")
                     warning_flag = True
                 continue
-            
+
             w.write(f"{id}\t{seq}\t{len(seq)}\n")
             items.append((cnt, seq))
             cnt += 1
 
-    assert cnt < 10000000, "The number of sequences should be less than 10,000,000."
-    
+    assert cnt < 10000000, "The number of sequences should be less than 10000000."
+
     ##########################################
     #       Compute protein embeddings       #
     ##########################################
@@ -68,14 +68,14 @@ def main(args):
 
     model = ProTrekTrimodalModel(**model_config)
     model.eval()
-    
+
     # Create empty embeddings
     npy_path = os.path.join(args.save_dir, f"embeddings_{cnt}.npy")
     if os.path.exists(npy_path):
         embeddings = np.memmap(npy_path, dtype=np.float32, mode="r+", shape=(cnt, 1024))
     else:
         embeddings = np.memmap(npy_path, dtype=np.float32, mode="write", shape=(cnt, 1024))
-    
+
     # Fill embeddings
     def do(process_id, idx, item, writer):
         if model.device == torch.device("cpu"):
@@ -87,76 +87,40 @@ def main(args):
             # Skip pre-computed embeddings
             if embeddings[i].sum() != 0:
                 return
-            
+
             seq_repr = model.get_protein_repr([seq])
             embeddings[i] = seq_repr.cpu().numpy()
 
-    mprs = MultipleProcessRunnerSimplifier(items[:2000], do, n_process=n_process, split_strategy="queue")
+    mprs = MultipleProcessRunnerSimplifier(items[:10000], do, n_process=n_process, split_strategy="queue")
     mprs.run()
     
     ##########################################
     #           Build Faiss index            #
     ##########################################
-    # Initialize the index
-    quantizer = faiss.IndexFlatIP(1024)
-    index = faiss.IndexIVFFlat(quantizer, 1024, 65536, faiss.METRIC_INNER_PRODUCT)
-    
-    res = faiss.StandardGpuResources()
-    index = faiss.index_cpu_to_gpu(res, 0, index)
-    
-    print("Building the index...")
-    index.train(embeddings)
-    index = faiss.index_gpu_to_cpu(index)
-    print(index.is_trained, flush=True)
-    print(index.ntotal, flush=True)
-    raise
-
-
-    print("Loading model from {}...".format(args.model_path))
-    tokenizer, model = load_model(args.model_path)
-    model.eval()
-    print("Model loaded.")
-
-    fasta_list = []
-    save_path_list = []
-    if os.path.isdir(args.input):
-        for f in os.listdir(args.input):
-            name, _ = os.path.splitext(f)
-
-            fasta_list.append(os.path.join(args.input, f))
-            save_path_list.append(os.path.join(args.save_path, name + ".pdb"))
-
+    if len(embeddings) < 1000000:
+        # Use brute-force search for small dataset
+        index = faiss.IndexFlatIP(1024)
     else:
-        fasta_list.append(args.input)
-        save_path_list.append(args.save_path)
-
-    overwrite = args.overwrite
-
-    def do(process_id, idx, input, writer):
-        try:
-            if use_gpu:
-                device = torch.device(f"cuda:{process_id}")
-                if model.device != device:
-                    model.to(device)
-
-            fasta, save_path = input
-            if os.path.exists(save_path) and not overwrite:
-                return
-
-            for seq_record in SeqIO.parse(fasta, "fasta"):
-                seq = str(seq_record.seq)
-                predict(seq, tokenizer, model, save_path)
-
-        except Exception as e:
-            print(e)
-            print("Error on {}".format(fasta))
-
-    data = [i for i in zip(fasta_list, save_path_list)]
-
-    print("Predicting...")
-    mprs = MultipleProcessRunnerSimplifier(data, do, save_path=None, n_process=n_process,
-                                           total_only=True, start_method="fork", split_strategy="queue")
-    mprs.run()
+        # Use IVF for large dataset
+        n_cluster = min(len(embeddings) // 39, 65536)
+        quantizer = faiss.IndexFlatIP(1024)
+        index = faiss.IndexIVFFlat(quantizer, 1024, n_cluster, faiss.METRIC_INNER_PRODUCT)
+        print(n_cluster)
+    
+    # Train the index if it requires training
+    if not index.is_trained:
+        print("Building index...")
+        res = faiss.StandardGpuResources()
+        index = faiss.index_cpu_to_gpu(res, 0, index)
+        index.train(embeddings)
+        index = faiss.index_gpu_to_cpu(index)
+    
+    for i in tqdm(range(0, len(embeddings), 100000), desc="Adding embeddings to index..."):
+        e = embeddings[i:i+100000]
+        index.add(e)
+   
+    index_path = os.path.join(args.save_dir, "sequence.index")
+    faiss.write_index(index, index_path)
     print("Done.")
 
 
