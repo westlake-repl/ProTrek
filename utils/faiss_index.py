@@ -1,5 +1,7 @@
 import faiss
 import numpy as np
+import glob
+import os
 
 from typing import Union, List
 from tqdm import tqdm
@@ -34,6 +36,15 @@ class FaissIndex:
 
             index.metric_type = faiss.METRIC_INNER_PRODUCT
             
+            # Additional raw embeddings are required for IVFPQ
+            if isinstance(index, faiss.IndexIVFPQ):
+                file_dir = os.path.dirname(path)
+                npy_path = glob.glob(f"{file_dir}/*.npy")
+                assert len(npy_path) == 1, f"Multiple npy files found in {file_dir}"
+                
+                npy_path = npy_path[0]
+                index.raw_embeddings = np.memmap(npy_path, dtype=np.float32, mode="r", shape=(index.ntotal, index.d))
+                
             self.ntotal += index.ntotal
             self.index_list.append(index)
 
@@ -63,6 +74,14 @@ class FaissIndex:
             scores = scores[selector]
             ranks = ranks[selector]
             
+            # # If the index is IVFPQ, we need to calculate the real scores using raw embeddings
+            # if isinstance(index, faiss.IndexIVFPQ):
+            #     hit_embeddings = np.empty((len(ranks), index.d), dtype=np.float32)
+            #     for i, hit_id in enumerate(tqdm(ranks)):
+            #         hit_embeddings[i] = index.raw_embeddings[hit_id]
+            #         pass
+            #     # scores = np.dot(query, hit_embeddings.T).flatten()
+            
             all_scores += scores.tolist()
             
             for i in range(k):
@@ -70,6 +89,20 @@ class FaissIndex:
                 rk = ranks[i]
                 results.append([index_rk, score, rk])
             
-        results = sorted(results, key=lambda x: x[1], reverse=True)
-        return results[:k], np.array(all_scores)
+        results = sorted(results, key=lambda x: x[1], reverse=True)[:k]
+        
+        # If the index is IVFPQ, we need to calculate the real scores using raw embeddings
+        if isinstance(self.index_list[0], faiss.IndexIVFPQ):
+            hit_embeddings = np.empty((k, self.index_list[0].d), dtype=np.float32)
+            for i, (index_rk, _, hit_id) in enumerate(tqdm(results)):
+                hit_embeddings[i] = self.index_list[index_rk].raw_embeddings[hit_id]
+                
+            scores = np.dot(query, hit_embeddings.T).flatten()
+            for i, score in enumerate(scores):
+                results[i][1] = score
+            
+            # Sort results again
+            results = sorted(results, key=lambda x: x[1], reverse=True)
+
+        return results, np.array(all_scores)
     
