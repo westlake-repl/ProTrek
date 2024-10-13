@@ -87,7 +87,7 @@ class FaissIndex:
             for i in range(k):
                 score = scores[i]
                 rk = ranks[i]
-                results.append([index_rk, score, rk])
+                results.append([index_rk, score, int(rk)])
             
         results = sorted(results, key=lambda x: x[1], reverse=True)[:k]
         

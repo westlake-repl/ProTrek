@@ -3,11 +3,17 @@ import torch
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import yaml
+import requests
+import json
 
+from easydict import EasyDict
 from scipy.stats import norm
-from .init_model import model, all_index, valid_subsections
+# from .init_model import model, all_index, valid_subsections
 from .blocks import upload_pdb_button, parse_pdb_file
 from Bio.Align import PairwiseAligner
+from utils.constants import sequence_level
 
 
 tmp_file_path = "/tmp/results.tsv"
@@ -33,6 +39,45 @@ samples = {
         ["Protein that serves as an enzyme."]
     ],
 }
+
+# Load all indexes and valid subsections
+BASE_DIR = os.path.dirname(__file__)
+config = EasyDict(yaml.safe_load(open(f"{BASE_DIR}/../backend/config.yaml")))
+all_index = {}
+
+all_index["sequence"] = {}
+for db in config.sequence_index_dir:
+    db_name = db["name"]
+    all_index["sequence"][db_name] = {}
+
+all_index["structure"] = {}
+for db in config.structure_index_dir:
+    db_name = db["name"]
+    all_index["structure"][db_name] = {}
+
+# Load text index
+all_index["text"] = {}
+valid_subsections = {}
+for db in config.text_index_dir:
+    db_name = db["name"]
+    index_dir = db["index_dir"]
+    all_index["text"][db_name] = {}
+    text_dir = f"{index_dir}/subsections"
+
+    # Remove "Taxonomic lineage" from sequence_level. This is a special case which we don't need to index.
+    valid_subsections[db_name] = set()
+    sequence_level.add("Global")
+    for subsection in sequence_level:
+        index_path = f"{text_dir}/{subsection.replace(' ', '_')}.index"
+        if not os.path.exists(index_path):
+            continue
+
+        all_index["text"][db_name][subsection] = {}
+        valid_subsections[db_name].add(subsection)
+
+# Sort valid_subsections
+for db_name in valid_subsections:
+    valid_subsections[db_name] = sorted(list(valid_subsections[db_name]))
 
 
 def clear_results():
@@ -90,67 +135,54 @@ def calc_seq_identity(seq1: str, seq2: str) -> float:
 def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str, db: str):
     print(f"Input type: {input_type}\n Output type: {query_type}\nDatabase: {db}\nSubsection: {subsection_type}")
 
-    input_modality = input_type.replace("sequence", "protein")
-    with torch.no_grad():
-        input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
+    # Send search request
+    params = {
+        "input": input,
+        "topk": topk,
+        "input_type": input_type,
+        "query_type": query_type,
+        "subsection_type": subsection_type,
+        "db": db
+    }
 
-    if query_type == "text":
-        index = all_index["text"][db][subsection_type]["index"]
-        ids = all_index["text"][db][subsection_type]["ids"]
+    url = f"http://127.0.0.1:7861/search"
+    response = requests.get(url=url, params=params).json()
+    with open(response["file_path"], "r") as r:
+        response = json.load(r)
 
-    else:
-        index = all_index[query_type][db]["index"]
-        ids = all_index[query_type][db]["ids"]
+    results = response["results"]
+    all_scores = response["all_scores"]
+    ids = response["ids"]
 
-    if hasattr(index.index_list[0], "nprobe"):
-        # index.nprobe = nprobe
-        max_num = max(topk, index.nprobe*256)
-    else:
-        max_num = index.ntotal
-    
-    if topk > index.ntotal:
-        raise gr.Error(f"You cannot retrieve more than the database size ({index.ntotal}).")
-    
-    print(index)
-    # Retrieve all scores to plot the distribution
-    # results, all_scores = index.index_list[0].search(input_embedding, max_num)
-    print(input)
-    print(topk, max_num)
-    results, all_scores = index.search(input_embedding, topk, max_num)
-    for item in results:
-        item[1] /= model.temperature.item()
-    
-    all_scores /= model.temperature.item()
     plot(all_scores)
 
     # If both the input and output are protein sequences, calculate the sequence identity
     if input_type == "sequence" and query_type == "sequence":
         seq_identities = []
         for i in range(topk):
-            index_rk, score, rank = results[i]
-            hit_seq = ids[index_rk].get(rank).split("\t")[1]
+            hit_seq = ids[i].split("\t")[1]
             seq_identities.append(calc_seq_identity(input, hit_seq))
 
         seq_identities = [f"{identity * 100:.2f}%" for identity in seq_identities]
-    
+
     # Write the results to a temporary file for downloading
     with open(tmp_file_path, "w") as w:
         if query_type == "text":
             w.write("Id\tMatching score\n")
         else:
             w.write("Id\tSequence\tLength\tSequence identity\tMatching score\n")
-        
+
         for i in range(topk):
             index_rk, score, rank = results[i]
             if query_type == "text":
-                w.write(f"{ids[index_rk].get(rank)}\t{score}\n")
+                w.write(f"{ids[i]}\t{score}\n")
 
             elif input_type == "sequence" and query_type == "sequence":
-                id, seq, length = ids[index_rk].get(rank).split("\t")
+                id, seq, length = ids[i].split("\t")
                 w.write(f"{id}\t{seq}\t{length}\t{seq_identities[i]}\t{score}\n")
 
             else:
-                id, seq, length = ids[index_rk].get(rank).split("\t")
+                id, seq, length = ids[i].split("\t")
                 w.write(f"{id}\t{seq}\t{length}\t{score}\n")
 
     # Get topk ids
@@ -160,7 +192,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     topk_lengths = []
     for i in range(topk):
         index_rk, score, rank = results[i]
-        now_id = ids[index_rk].get(rank).split("\t")[0].replace("|", "\\|")
+        now_id = ids[i].split("\t")[0].replace("|", "\\|")
         if query_type != "text":
             now_id = now_id[:20] + "..." if len(now_id) > 20 else now_id
         topk_scores.append(score)
@@ -179,7 +211,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
                 topk_ids.append(now_id)
 
         if query_type != "text":
-            _, ori_seq, ori_len = ids[index_rk].get(rank).split("\t")
+            _, ori_seq, ori_len = ids[i].split("\t")
             seq = ori_seq[:20] + "..." if len(ori_seq) > 20 else ori_seq
             topk_seqs.append(seq)
             topk_lengths.append(ori_len)
@@ -207,7 +239,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."], "Matching score": ["..."]},
                                    index=[1000])
             df = pd.concat([df, info_df], axis=0)
-    
+
     output = df.to_markdown()
     return (output,
             gr.DownloadButton(label="Download results", value=tmp_file_path, visible=True, scale=0),
@@ -255,18 +287,19 @@ def check_index_ivf(index_type: str, db: str, subsection_type: str = None) -> bo
     Returns:
         Whether the index is of IVF type or not.
     """
-    if index_type == "sequence":
-        index = all_index["sequence"][db]["index"]
-    
-    elif index_type == "structure":
-        index = all_index["structure"][db]["index"]
-    
-    elif index_type == "text":
-        index = all_index["text"][db][subsection_type]["index"]
-    
-    # nprobe_visible = True if hasattr(index, "nprobe") else False
-    # return nprobe_visible
     return False
+    # if index_type == "sequence":
+    #     index = all_index["sequence"][db]["index"]
+    #
+    # elif index_type == "structure":
+    #     index = all_index["structure"][db]["index"]
+    #
+    # elif index_type == "text":
+    #     index = all_index["text"][db][subsection_type]["index"]
+    #
+    # # nprobe_visible = True if hasattr(index, "nprobe") else False
+    # # return nprobe_visible
+    # return False
 
 
 def change_db_type(query_type: str, subsection_type: str, db_type: str):
@@ -358,6 +391,6 @@ def build_search_module():
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
         search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type, db_type],
-                      outputs=[results, download_btn, histogram], concurrency_limit=1)
+                      outputs=[results, download_btn, histogram], concurrency_limit=8)
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])

@@ -1,7 +1,7 @@
 import gradio as gr
 import torch
 
-from .init_model import model
+# from .init_model import model
 from .blocks import upload_pdb_button, parse_pdb_file
 
 
