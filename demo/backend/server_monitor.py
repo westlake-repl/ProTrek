@@ -31,7 +31,7 @@ if __name__ == '__main__':
     while True:
         server_list = os.listdir(server_dir)
 
-        display_info = "All active servers are listed below:\n" \
+        display_info = "All active servers are listed below:\n\n" \
                        "IP:PORT\tSTATE\n"
 
         for ip_port in server_list:
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
                 else:
                     with open(ip_info, "r") as r:
-                        state = r.read()
+                        state = r.read().strip()
 
                     if state == "idle":
                         display_info += f"{ip}:{port}\t\033[32m{state}\033[0m\n"

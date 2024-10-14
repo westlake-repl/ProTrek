@@ -169,8 +169,12 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     with open(tmp_file_path, "w") as w:
         if query_type == "text":
             w.write("Id\tMatching score\n")
-        else:
+            
+        elif input_type == "sequence" and query_type == "sequence":
             w.write("Id\tSequence\tLength\tSequence identity\tMatching score\n")
+            
+        else:
+            w.write("Id\tSequence\tLength\tMatching score\n")
 
         for i in range(topk):
             index_rk, score, rank = results[i]

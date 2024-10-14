@@ -1,6 +1,7 @@
 import os
-import pandas as pd
 import copy
+
+from utils.mpr import MultipleProcessRunnerSimplifier
 
 
 # efficiently read large file by using a pointer
@@ -42,7 +43,7 @@ class FileReader:
         return self.file.readline()[:-1]
 
     def __len__(self):
-        return self.pointer.shape[0]
+        return len(self.pointer)
     
     
 def get_file_readers(file_path: str, n_readers: int) -> list:
