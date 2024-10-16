@@ -94,6 +94,54 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     return return_dict
 
 
+@app.get("/compute")
+def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: str):
+    """
+    This function is used to compute the similarity score between two inputs
+    Args:
+        input: Input query
+
+        topk: Number of results to return
+
+        input_type: Type of input, e.g., "sequence", "structure", "text"
+
+        query_type: Type of database to search, e.g., "sequence", "structure", "text"
+
+        subsection_type: If db_type is text, search in this subsection
+
+        db: Database name for a specific db_type, e.g., "uniprot", "pdb" in sequence databases
+
+    Returns:
+
+    """
+    try:
+        # Set server state to busy
+        set_state("busy")
+        with torch.no_grad():
+            input_reprs = []
+            for input_type, input in [(input_type_1, input_1), (input_type_2, input_2)]:
+                if input_type == "sequence":
+                    input_reprs.append(model.get_protein_repr([input]))
+                
+                elif input_type == "structure":
+                    input_reprs.append(model.get_structure_repr([input]))
+                
+                else:
+                    input_reprs.append(model.get_text_repr([input]))
+            
+            score = input_reprs[0] @ input_reprs[1].T / model.temperature
+            return_dict = {"score": f"{score.item():.4f}"}
+    
+    except Exception as e:
+        return_dict = {"error": str(e)}
+    
+    finally:
+        # Set server state to idle
+        set_state("idle")
+    
+    return return_dict
+
+
 # Set server state
 def set_state(state: str):
     flag_path = f"{BASE_DIR}/server_list/{get_ip()}:{PORT}.flag"

@@ -107,5 +107,40 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     return response
 
 
+@app.get("/compute")
+def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: str):
+    """
+    This function is used to compute the similarity score between two inputs
+    Args:
+        input: Input query
+
+        topk: Number of results to return
+
+        input_type: Type of input, e.g., "sequence", "structure", "text"
+
+        query_type: Type of database to search, e.g., "sequence", "structure", "text"
+
+        subsection_type: If db_type is text, search in this subsection
+
+        db: Database name for a specific db_type, e.g., "uniprot", "pdb" in sequence databases
+
+    Returns:
+
+    """
+    ip = get_idle_node()
+    
+    # Send request to the idle node
+    url = f"http://{ip}/compute"
+    params = {
+        "input_type_1": input_type_1,
+        "input_1": input_1,
+        "input_type_2": input_type_2,
+        "input_2": input_2,
+    }
+    
+    response = requests.get(url=url, params=params).json()
+    return response
+
+
 if __name__ == "__main__":
     uvicorn.run("server_manager:app", host="0.0.0.0", port=7861)

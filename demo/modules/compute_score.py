@@ -1,5 +1,6 @@
 import gradio as gr
 import torch
+import requests
 
 # from .init_model import model
 from .blocks import upload_pdb_button, parse_pdb_file
@@ -31,22 +32,18 @@ samples = [[s1, s2] for s1, s2 in zip(input_examples["sequence"], input_examples
 
 
 def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: str):
-    with torch.no_grad():
-        input_reprs = []
-        
-        for input_type, input in [(input_type_1, input_1), (input_type_2, input_2)]:
-            if input_type == "sequence":
-                input_reprs.append(model.get_protein_repr([input]))
-            
-            elif input_type == "structure":
-                input_reprs.append(model.get_structure_repr([input]))
-            
-            else:
-                input_reprs.append(model.get_text_repr([input]))
-        
-        score = input_reprs[0] @ input_reprs[1].T / model.temperature
+    url = f"http://127.0.0.1:7861/compute"
+    params = {
+        "input_type_1": input_type_1,
+        "input_1": input_1,
+        "input_type_2": input_type_2,
+        "input_2": input_2,
+    }
     
-    return f"{score.item():.4f}"
+    response = requests.get(url=url, params=params).json()
+    score = response["score"]
+    
+    return score
 
 
 def change_input_type(choice_1: str, choice_2: str):
