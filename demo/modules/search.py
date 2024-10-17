@@ -371,7 +371,7 @@ def build_search_module():
                            outputs=[subsection_type, nprobe])
             
             # Choose topk results
-            topk = gr.Slider(1, 1000000, 5,  step=1, label="Retrieve top k results")
+            topk = gr.Slider(1, 10000, 5,  step=1, label="Retrieve top k results")
 
             # Provide examples
             examples = gr.Dataset(samples=samples["text"], components=[input], label="Input examples")
