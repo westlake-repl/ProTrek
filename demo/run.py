@@ -14,7 +14,7 @@ from gradio.themes import *
 
 
 # Build demo
-with gr.Blocks() as demo:
+with gr.Blocks(title="ProTrek") as demo:
     build_search_module()
     build_score_computation()
     build_TMalign()

@@ -7,6 +7,7 @@ import os
 import yaml
 import requests
 import json
+import time
 
 from easydict import EasyDict
 from scipy.stats import norm
@@ -18,6 +19,7 @@ from utils.constants import sequence_level
 
 tmp_file_path = "/tmp/results.tsv"
 tmp_plot_path = "/tmp/histogram.svg"
+plot_available = True
 
 # Samples for input
 samples = {
@@ -90,6 +92,15 @@ def plot(scores) -> None:
     Args:
         scores: List of scores
     """
+
+    # Wait for the plot to be available
+    global plot_available
+    while not plot_available:
+        time.sleep(0.1)
+
+    # Lock the plot
+    plot_available = False
+
     plt.hist(scores, bins=100, density=True, alpha=0.6)
     plt.title('Distribution of similarity scores in the database', fontsize=15)
     plt.xlabel('Similarity score', fontsize=15)
@@ -118,6 +129,9 @@ def plot(scores) -> None:
     # Convert the plot to svg format
     plt.savefig(tmp_plot_path)
     plt.cla()
+
+    # Unlock the plot
+    plot_available = True
 
 
 # Calculate protein sequence identity
