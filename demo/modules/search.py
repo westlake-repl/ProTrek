@@ -20,6 +20,7 @@ from utils.constants import sequence_level
 tmp_file_path = "/tmp/results.tsv"
 tmp_plot_path = "/tmp/histogram.svg"
 plot_available = True
+record_available = True
 
 # Samples for input
 samples = {
@@ -85,6 +86,32 @@ for db_name in valid_subsections:
 def clear_results():
     return "", gr.update(visible=False), gr.update(visible=False)
 
+
+# Record visits
+def record(record_dict: dict):
+    global record_available
+    while not plot_available:
+        time.sleep(0.1)
+    
+    # Lock
+    record_available = False
+    
+    # Add one to the number of visits
+    cnt_file = f"{BASE_DIR}/../backend/statistics.tsv"
+    now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+    record_info = "\t".join(str(v) for v in record_dict.values())
+    
+    if not os.path.exists(cnt_file):
+        with open(cnt_file, "w") as w:
+            record_keys = "\t".join(list(record_dict.keys()))
+            w.write(f"time\t{record_keys}\n")
+    
+    with open(cnt_file, "a") as w:
+        w.write(f"{now_time}\t{record_info}\n")
+        
+    # Unlock
+    record_available = True
+    
 
 def plot(scores) -> None:
     """
@@ -163,7 +190,10 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     response = requests.get(url=url, params=params).json()
     with open(response["file_path"], "r") as r:
         response = json.load(r)
-
+    
+    # Record visits
+    record(params)
+    
     results = response["results"]
     all_scores = response["all_scores"]
     ids = response["ids"]

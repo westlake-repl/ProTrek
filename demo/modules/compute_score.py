@@ -51,9 +51,8 @@ def change_input_type(choice_1: str, choice_2: str):
     examples_2 = input_examples[choice_2]
     
     # Change examples if input type is changed
-    global samples
     samples = [[s1, s2] for s1, s2 in zip(examples_1, examples_2)]
-    
+
     # Set visibility of upload button
     if choice_1 == "text":
         visible_1 = False
@@ -70,8 +69,8 @@ def change_input_type(choice_1: str, choice_2: str):
 
 
 # Load example from dataset
-def load_example(example_id):
-    return samples[example_id]
+def load_example(examples):
+    return examples
 
 
 # Build the block for computing protein-text similarity
@@ -103,7 +102,7 @@ def build_score_computation():
                 upload_btn_2.upload(parse_pdb_file, inputs=[input_type_2, upload_btn_2, chain_box_2], outputs=[input_2])
             
             # Provide examples
-            examples = gr.Dataset(samples=samples, type="index", components=[input_1, input_2], label="Input examples")
+            examples = gr.Dataset(samples=samples, components=[input_1, input_2], label="Input examples")
             
             # Add click event to examples
             examples.click(fn=load_example, inputs=[examples], outputs=[input_1, input_2])
