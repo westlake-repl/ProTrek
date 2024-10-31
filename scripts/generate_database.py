@@ -51,7 +51,7 @@ def main(args):
             items.append((cnt, seq))
             cnt += 1
 
-    assert cnt < 10000000, "The number of sequences should be less than 10000000."
+    assert cnt < 10000001, "The number of sequences should not be greater than 10000000."
 
     ##########################################
     #       Compute protein embeddings       #
