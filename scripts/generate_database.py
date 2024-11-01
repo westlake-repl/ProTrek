@@ -47,6 +47,8 @@ def main(args):
             w.write(f"{id}\t{seq}\t{len(seq)}\n")
             items.append((cnt, seq))
             cnt += 1
+            if cnt == 100000:
+                break
 
     assert cnt < 10000001, "The number of sequences should not be greater than 10000000."
 
@@ -90,7 +92,7 @@ def main(args):
             seq_repr = model.get_protein_repr([seq])
             embeddings[i] = seq_repr.cpu().numpy()
 
-    mprs = MultipleProcessRunnerSimplifier(items, do, n_process=n_process, split_strategy="queue", log_step=1000)
+    mprs = MultipleProcessRunnerSimplifier(items, do, n_process=n_process*2, split_strategy="queue", log_step=1)
     mprs.run()
     
     ##########################################
