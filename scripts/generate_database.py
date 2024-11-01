@@ -16,18 +16,15 @@ from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
 
 
 def main(args):
-    n_process = 1
-    use_gpu = False
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    print(f"Used device: {args.device}")
-    if "cpu" not in args.device.lower():
-        use_gpu = True
-        os.environ["CUDA_VISIBLE_DEVICES"] = args.device
+    assert torch.cuda.is_available(), "CUDA is not available. Please check your CUDA installation."
+    n_process = torch.cuda.device_count()
+
+    if args.device != "":
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(args.device)
         gpu_num = len(args.device.split(","))
         n_process = gpu_num
-    
-    assert use_gpu, ("We strongly recommend to use GPU to build index. Using CPU may take extremely long time."
-                     "You can set the device by passing --device argument. e.g. --device 0,1,2,3")
+
+        print(f"Specified devices: {os.environ['CUDA_VISIBLE_DEVICES']}")
     
     ##########################################
     #         Load protein sequences         #
@@ -56,14 +53,16 @@ def main(args):
     ##########################################
     #       Compute protein embeddings       #
     ##########################################
+    root_dir = os.path.abspath(__file__).rsplit("/", 2)[0]
+
     # Load the model
     model_config = {
-        "protein_config": glob.glob("weights/ProTrek_650M_UniRef50/esm2_*")[0],
-        "text_config": "weights/ProTrek_650M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-        "structure_config": glob.glob("weights/ProTrek_650M_UniRef50/foldseek_*")[0],
+        "protein_config": glob.glob(f"{root_dir}/weights/ProTrek_650M_UniRef50/esm2_*")[0],
+        "text_config": f"{root_dir}/weights/ProTrek_650M_UniRef50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+        "structure_config": glob.glob(f"{root_dir}/weights/ProTrek_650M_UniRef50/foldseek_*")[0],
         "load_protein_pretrained": False,
         "load_text_pretrained": False,
-        "from_checkpoint": glob.glob("weights/ProTrek_650M_UniRef50/*.pt")[0]
+        "from_checkpoint": glob.glob(f"{root_dir}/weights/ProTrek_650M_UniRef50/*.pt")[0]
     }
 
     model = ProTrekTrimodalModel(**model_config)
@@ -79,7 +78,7 @@ def main(args):
     # Fill embeddings
     def do(process_id, idx, item, writer):
         if model.device == torch.device("cpu"):
-            device = f"cuda:{process_id % torch.cuda.device_count()}"
+            device = f"cuda:{process_id % n_process}"
             model.to(device)
 
         i, seq = item
@@ -91,7 +90,7 @@ def main(args):
             seq_repr = model.get_protein_repr([seq])
             embeddings[i] = seq_repr.cpu().numpy()
 
-    mprs = MultipleProcessRunnerSimplifier(items[:10000], do, n_process=n_process, split_strategy="queue")
+    mprs = MultipleProcessRunnerSimplifier(items, do, n_process=n_process, split_strategy="queue", log_step=1000)
     mprs.run()
     
     ##########################################
@@ -132,8 +131,8 @@ def get_args():
     parser.add_argument('--save_dir', help="Save the database to the directory", type=str, required=True)
 
     parser.add_argument('--device', help="Running inference on specific device. If "
-                                         "multi-gpu is expected, set gpu number seperated by comma, "
-                                         "e.g. '0,1,2,3'. default: cpu", type=str, default="cpu")
+                                         "multiple GPUs are expected, set GPU number seperated by comma, "
+                                         "e.g. '0,1,2,3'. default: all available GPUs", type=str, default="")
     return parser.parse_args()
 
 
