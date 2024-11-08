@@ -47,27 +47,28 @@ def get_idle_node() -> str:
         ip_port: IP address of the idle node
     """
     # Find the first idle node
-    while True:
-        server_list = list(filter(lambda x: x.endswith(".flag"), os.listdir(server_dir)))
-        # Sort by the last modified time
-        server_list.sort(key=lambda file: os.path.getmtime(f"{server_dir}/{file}"))
+    # while True:
+    server_list = list(filter(lambda x: x.endswith(".flag"), os.listdir(server_dir)))
+    # Sort by the last modified time
+    server_list.sort(key=lambda file: os.path.getmtime(f"{server_dir}/{file}"))
+    
+    for ip_port in server_list:
+        ip, port = ip_port.split(".flag")[0].split(":")
+        ip_info = f"{server_dir}/{ip_port}"
 
-        for ip_port in server_list:
-            ip, port = ip_port.split(".flag")[0].split(":")
-            ip_info = f"{server_dir}/{ip_port}"
+        # Remove inaccessible server
+        if not check_port(ip, int(port)):
+            os.remove(ip_info)
+            continue
 
-            # Remove inaccessible server
-            if not check_port(ip, int(port)):
-                os.remove(ip_info)
-                continue
+        with open(ip_info, "r") as r:
+            state = r.read()
 
-            with open(ip_info, "r") as r:
-                state = r.read()
-
-            if state == "idle":
-                return ip_port.split(".flag")[0]
-        
-        time.sleep(0.1)
+        if state == "idle":
+            return ip_port.split(".flag")[0]
+    
+    # No idle node
+    raise Exception("No idle node available")
         
 
 @app.get("/search")

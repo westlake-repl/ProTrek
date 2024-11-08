@@ -32,18 +32,22 @@ samples = [[s1, s2] for s1, s2 in zip(input_examples["sequence"], input_examples
 
 
 def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: str):
-    url = f"http://127.0.0.1:7861/compute"
-    params = {
-        "input_type_1": input_type_1,
-        "input_1": input_1,
-        "input_type_2": input_type_2,
-        "input_2": input_2,
-    }
+    try:
+        url = f"http://127.0.0.1:7861/compute"
+        params = {
+            "input_type_1": input_type_1,
+            "input_1": input_1,
+            "input_type_2": input_type_2,
+            "input_2": input_2,
+        }
+        
+        response = requests.get(url=url, params=params).json()
+        score = response["score"]
+        
+        return score
     
-    response = requests.get(url=url, params=params).json()
-    score = response["score"]
-    
-    return score
+    except Exception as e:
+        raise gr.Error("We are updating the system. Please try again later.")
 
 
 def change_input_type(choice_1: str, choice_2: str):

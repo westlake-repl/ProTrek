@@ -185,11 +185,14 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         "subsection_type": subsection_type,
         "db": db
     }
-
-    url = f"http://127.0.0.1:7861/search"
-    response = requests.get(url=url, params=params).json()
-    with open(response["file_path"], "r") as r:
-        response = json.load(r)
+    
+    try:
+        url = f"http://127.0.0.1:7861/search"
+        response = requests.get(url=url, params=params).json()
+        with open(response["file_path"], "r") as r:
+            response = json.load(r)
+    except Exception as e:
+        raise gr.Error("We are updating the system. Please try again later.")
     
     # Record visits
     record(params)
