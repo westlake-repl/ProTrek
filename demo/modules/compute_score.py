@@ -47,7 +47,7 @@ def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: s
         return score
     
     except Exception as e:
-        raise gr.Error("We are updating the system. Please try again later.")
+        raise gr.Error("The system is busy. Please try again later.")
 
 
 def change_input_type(choice_1: str, choice_2: str):
