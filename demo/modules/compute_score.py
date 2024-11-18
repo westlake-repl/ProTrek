@@ -33,6 +33,17 @@ samples = [[s1, s2] for s1, s2 in zip(input_examples["sequence"], input_examples
 
 def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: str):
     try:
+        # Regulate the input
+        if input_type_1 == "sequence":
+            input_1 = input_1.upper()
+        elif input_type_1 == "structure":
+            input_1 = input_1.lower()
+        
+        if input_type_2 == "sequence":
+            input_2 = input_2.upper()
+        elif input_type_2 == "structure":
+            input_2 = input_2.lower()
+        
         url = f"http://127.0.0.1:7861/compute"
         params = {
             "input_type_1": input_type_1,

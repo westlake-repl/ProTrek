@@ -175,7 +175,14 @@ def calc_seq_identity(seq1: str, seq2: str) -> float:
 # Search from database
 def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str, subsection_type: str, db: str):
     print(f"Input type: {input_type}\n Output type: {query_type}\nDatabase: {db}\nSubsection: {subsection_type}")
-
+    
+    # Regulate the input
+    if input_type == "sequence":
+        input = input.upper()
+        
+    elif input_type == "structure":
+        input = input.lower()
+    
     # Send search request
     params = {
         "input": input,
