@@ -221,14 +221,16 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
 
     # Write the results to a temporary file for downloading
     with open(tmp_file_path, "w") as w:
+        seq_column_name = "Sequence" if query_type == "sequence" else "Foldseek sequence"
+        
         if query_type == "text":
             w.write("Id\tMatching score\n")
             
         elif input_type == "sequence" and query_type == "sequence":
-            w.write("Id\tSequence\tLength\tSequence identity\tMatching score\n")
+            w.write(f"Id\t{seq_column_name}\tLength\tSequence identity\tMatching score\n")
             
         else:
-            w.write("Id\tSequence\tLength\tMatching score\n")
+            w.write(f"Id\t{seq_column_name}\tLength\tMatching score\n")
 
         for i in range(topk):
             index_rk, score, rank = results[i]
@@ -275,6 +277,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             topk_lengths.append(ori_len)
 
     limit = 1000
+    seq_column_name = "Sequence" if query_type == "sequence" else "Foldseek sequence"
     if query_type == "text":
         df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": topk_scores[:limit]})
         if len(topk_ids) > limit:
@@ -283,18 +286,18 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             df = pd.concat([df, info_df], axis=0)
 
     elif input_type == "sequence" and query_type == "sequence":
-        df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit],
+        df = pd.DataFrame({"Id": topk_ids[:limit], seq_column_name: topk_seqs[:limit],
                            "Length": topk_lengths[:limit], "Sequence identity": seq_identities[:limit],
                           "Matching score": topk_scores[:limit]})
         if len(topk_ids) > limit:
-            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."],
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], seq_column_name: ["..."], "Length": ["..."],
                                     "Sequence identity": ["..."], "Matching score": ["..."]}, index=[1000])
             df = pd.concat([df, info_df], axis=0)
 
     else:
-        df = pd.DataFrame({"Id": topk_ids[:limit], "Sequence": topk_seqs[:limit], "Length": topk_lengths[:limit], "Matching score": topk_scores[:limit]})
+        df = pd.DataFrame({"Id": topk_ids[:limit], seq_column_name: topk_seqs[:limit], "Length": topk_lengths[:limit], "Matching score": topk_scores[:limit]})
         if len(topk_ids) > limit:
-            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Sequence": ["..."], "Length": ["..."], "Matching score": ["..."]},
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], seq_column_name: ["..."], "Length": ["..."], "Matching score": ["..."]},
                                    index=[1000])
             df = pd.concat([df, info_df], axis=0)
 
