@@ -25,32 +25,40 @@ def check_port(ip, port):
 
 if __name__ == '__main__':
     BASE_DIR = os.path.dirname(__file__)
-    server_dir = os.path.join(BASE_DIR, "server_list")
+    server_root_dir = os.path.join(BASE_DIR, "servers")
 
     # Update server state continuously
     while True:
-        server_list = os.listdir(server_dir)
+        sub_dir_names = []
+        for name in os.listdir(server_root_dir):
+            if os.path.isdir(os.path.join(server_root_dir, name)):
+                sub_dir_names.append(name)
 
-        display_info = "All active servers are listed below:\n\n" \
-                       "IP:PORT\tSTATE\n"
+        display_info = "All active servers are listed below:\n\n"
 
-        for ip_port in server_list:
-            if ip_port.endswith(".flag"):
-                ip, port = ip_port.split(".flag")[0].split(":")
-                ip_info = f"{server_dir}/{ip_port}"
+        for dir_name in sub_dir_names:
+            sub_server_dir = f"{server_root_dir}/{dir_name}/server_list"
+            server_list = os.listdir(sub_server_dir)
 
-                # Remove inaccessible server
-                if not check_port(ip, int(port)):
-                    display_info += f"{ip}:{port}\t\033[31minaccessible\033[0m\n"
+            display_info += f"\nIP:PORT\tSTATE\t(Service: {dir_name})\n"
 
-                else:
-                    with open(ip_info, "r") as r:
-                        state = r.read().strip()
+            for ip_port in server_list:
+                if ip_port.endswith(".flag"):
+                    ip, port = ip_port.split(".flag")[0].split(":")
+                    ip_info = f"{sub_server_dir}/{ip_port}"
 
-                    if state == "idle":
-                        display_info += f"{ip}:{port}\t\033[32m{state}\033[0m\n"
+                    # Remove inaccessible server
+                    if not check_port(ip, int(port)):
+                        display_info += f"{ip}:{port}\t\033[31minaccessible\033[0m\n"
+
                     else:
-                        display_info += f"{ip}:{port}\t\033[31m{state}\033[0m\n"
+                        with open(ip_info, "r") as r:
+                            state = r.read().strip()
+
+                        if state == "idle":
+                            display_info += f"{ip}:{port}\t\033[32m{state}\033[0m\n"
+                        else:
+                            display_info += f"{ip}:{port}\t\033[31m{state}\033[0m\n"
 
         os.system("clear")
         print(display_info)

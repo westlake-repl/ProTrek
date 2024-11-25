@@ -1,5 +1,3 @@
-model_dir: /storage/sujin/Models/ProTrek/ProTrek_650M_UniRef50
-
 faiss_config:
   IO_FLAG_MMAP: True
 

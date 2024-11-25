@@ -70,6 +70,7 @@ for db in config.text_index_dir:
     # Remove "Taxonomic lineage" from sequence_level. This is a special case which we don't need to index.
     valid_subsections[db_name] = set()
     sequence_level.add("Global")
+    sequence_level.add("Enzyme commission number")
     for subsection in sequence_level:
         index_path = f"{text_dir}/{subsection.replace(' ', '_')}.index"
         if not os.path.exists(index_path):

@@ -1,38 +1,48 @@
 import sys
-root_dir = __file__.rsplit("/", 3)[0]
+
+root_dir = __file__.rsplit("/", 5)[0]
 if root_dir not in sys.path:
     sys.path.append(root_dir)
-    
+
 import uvicorn
 import socket
 import os
 import torch
 import json
+import requests
+import numpy as np
 
-from init_model import model, all_index, valid_subsections
+from init_index import all_index
 from fastapi import FastAPI
 from tqdm import tqdm
-
 
 app = FastAPI()
 BASE_DIR = os.path.dirname(__file__)
 
 
 @app.get("/search")
-def search(input: str, topk: int, input_type: str, query_type: str, subsection_type: str, db: str):
+def search(manager_ip_port: str,
+           input: str,
+           topk: int,
+           input_type: str,
+           query_type: str,
+           subsection_type: str,
+           db: str):
     """
     This function is used for multi-modal search
     Args:
+        manager_ip_port: IP and port of the server manager
+
         input: Input query
-        
+
         topk: Number of results to return
-        
+
         input_type: Type of input, e.g., "sequence", "structure", "text"
-        
+
         query_type: Type of database to search, e.g., "sequence", "structure", "text"
-        
+
         subsection_type: If db_type is text, search in this subsection
-        
+
         db: Database name for a specific db_type, e.g., "uniprot", "pdb" in sequence databases
 
     Returns:
@@ -42,9 +52,16 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
         # Set server state to busy
         set_state("busy")
 
-        input_modality = input_type.replace("sequence", "protein")
-        with torch.no_grad():
-            input_embedding = getattr(model, f"get_{input_modality}_repr")([input]).cpu().numpy()
+        # Get input embedding
+        params = {
+            "input": input,
+            "input_type": input_type,
+        }
+
+        url = f"http://{manager_ip_port}/generate_embedding"
+        response = requests.get(url=url, params=params).json()
+        input_embedding = np.array(response["input_embedding"])
+        temperature = response["temperature"]
 
         if query_type == "text":
             index = all_index["text"][db][subsection_type]["index"]
@@ -56,16 +73,16 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
 
         if hasattr(index.index_list[0], "nprobe"):
             # index.nprobe = nprobe
-            max_num = max(topk, index.nprobe*256)
+            max_num = max(topk, index.nprobe * 256)
         else:
             max_num = index.ntotal
 
         results, all_scores = index.search(input_embedding, topk, max_num)
 
         for item in results:
-            item[1] /= model.temperature.item()
+            item[1] /= temperature
 
-        all_scores /= model.temperature.item()
+        all_scores /= temperature
 
         # Retrieve ids based on rank
         topk_ids = []
@@ -90,64 +107,64 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
     finally:
         # Set server state to idle
         set_state("idle")
-    
+
     return return_dict
 
 
 @app.get("/compute")
-def compute_score(input_type_1: str, input_1: str, input_type_2: str, input_2: str):
+def compute_score(manager_ip_port: str, input_type_1: str, input_1: str, input_type_2: str, input_2: str):
     """
     This function is used to compute the similarity score between two inputs
     Args:
-        input: Input query
+        manager_ip_port: IP and port of the server manager
 
-        topk: Number of results to return
+        input_type_1: Type of input 1, e.g., "sequence", "structure", "text"
 
-        input_type: Type of input, e.g., "sequence", "structure", "text"
+        input_1: Input query 1
 
-        query_type: Type of database to search, e.g., "sequence", "structure", "text"
+        input_type_2: Type of input 2, e.g., "sequence", "structure", "text"
 
-        subsection_type: If db_type is text, search in this subsection
-
-        db: Database name for a specific db_type, e.g., "uniprot", "pdb" in sequence databases
-
-    Returns:
-
+        input_2: Input query 2
     """
     try:
         # Set server state to busy
         set_state("busy")
+
         with torch.no_grad():
             input_reprs = []
             for input_type, input in [(input_type_1, input_1), (input_type_2, input_2)]:
-                if input_type == "sequence":
-                    input_reprs.append(model.get_protein_repr([input]))
-                
-                elif input_type == "structure":
-                    input_reprs.append(model.get_structure_repr([input]))
-                
-                else:
-                    input_reprs.append(model.get_text_repr([input]))
-            
-            score = input_reprs[0] @ input_reprs[1].T / model.temperature
+                # Get input embedding
+                params = {
+                    "input": input,
+                    "input_type": input_type,
+                }
+
+                url = f"http://{manager_ip_port}/generate_embedding"
+                response = requests.get(url=url, params=params).json()
+                input_embedding = np.array(response["input_embedding"])
+                input_reprs.append(input_embedding)
+
+                temperature = response["temperature"]
+
+            score = input_reprs[0] @ input_reprs[1].T / temperature
             return_dict = {"score": f"{score.item():.4f}"}
-    
+
     except Exception as e:
         return_dict = {"error": str(e)}
-    
+
     finally:
         # Set server state to idle
         set_state("idle")
-    
+
     return return_dict
 
 
 # Set server state
 def set_state(state: str):
-    flag_path = f"{BASE_DIR}/test_list/{get_ip()}:{PORT}.flag"
+    flag_path = f"{BASE_DIR}/server_list/{get_ip()}:{PORT}.flag"
     with open(flag_path, "w") as w:
         w.write(state)
-    
+
 
 # Get the IP address of the server
 def get_ip():
@@ -155,7 +172,7 @@ def get_ip():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(('8.8.8.8', 80))
         ip = s.getsockname()[0]
-        
+
     finally:
         s.close()
         return ip
@@ -184,6 +201,5 @@ while check_port_in_use(PORT):
 if __name__ == "__main__":
     # Generate IP flag
     set_state("idle")
-    
-    uvicorn.run("search_api:app", host="0.0.0.0", port=PORT)
-    
+
+    uvicorn.run("server:app", host="0.0.0.0", port=PORT)
