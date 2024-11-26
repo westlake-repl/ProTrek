@@ -18,6 +18,8 @@ from tqdm import tqdm
 
 app = FastAPI()
 BASE_DIR = os.path.dirname(__file__)
+os.makedirs(f"{BASE_DIR}/cache", exist_ok=True)
+os.makedirs(f"{BASE_DIR}/server_list", exist_ok=True)
 
 
 @app.get("/search")
