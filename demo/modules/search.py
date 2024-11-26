@@ -210,6 +210,9 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     ids = response["ids"]
 
     plot(all_scores)
+    
+    # Set topk
+    topk = len(results)
 
     # If both the input and output are protein sequences, calculate the sequence identity
     if input_type == "sequence" and query_type == "sequence":

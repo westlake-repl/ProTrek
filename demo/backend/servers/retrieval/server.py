@@ -70,7 +70,10 @@ def search(manager_ip_port: str,
         else:
             index = all_index[query_type][db]["index"]
             ids = all_index[query_type][db]["ids"]
-
+        
+        # Set topk
+        topk = min(topk, index.ntotal)
+        
         if hasattr(index.index_list[0], "nprobe"):
             # index.nprobe = nprobe
             max_num = max(topk, index.nprobe * 256)
