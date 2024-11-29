@@ -44,6 +44,9 @@ class TextEncoder(torch.nn.Module):
         """
         device = next(self.parameters()).device
         
+        if isinstance(texts, str):
+            texts = [texts]
+        
         text_repr = []
         if verbose:
             iterator = tqdm(range(0, len(texts), batch_size), desc="Computing text embeddings")

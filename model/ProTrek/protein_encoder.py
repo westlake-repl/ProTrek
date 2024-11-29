@@ -51,6 +51,9 @@ class ProteinEncoder(torch.nn.Module):
         """
         device = next(self.parameters()).device
         
+        if isinstance(proteins, str):
+            proteins = [proteins]
+        
         protein_repr = []
         if verbose:
             iterator = tqdm(range(0, len(proteins), batch_size), desc="Computing protein embeddings")
