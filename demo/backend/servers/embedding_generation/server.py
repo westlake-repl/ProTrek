@@ -91,9 +91,9 @@ while check_port_in_use(PORT):
 
 # Load the config file
 base_dir = os.path.dirname(__file__)
-config_path = f"{base_dir}/config.yaml"
+config_path = f"{base_dir}/../../../config.yaml"
 with open(config_path, 'r', encoding='utf-8') as r:
-    config = EasyDict(yaml.safe_load(r))
+    config = EasyDict(yaml.safe_load(r)).embedding_generation
 
 # Load model
 model_config = {

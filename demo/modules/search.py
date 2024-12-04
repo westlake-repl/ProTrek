@@ -45,37 +45,25 @@ samples = {
 
 # Load all indexes and valid subsections
 BASE_DIR = os.path.dirname(__file__)
-config = EasyDict(yaml.safe_load(open(f"{BASE_DIR}/../backend/config.yaml")))
+config = EasyDict(yaml.safe_load(open(f"{BASE_DIR}/../config.yaml"))).frontend
 all_index = {}
 
 all_index["sequence"] = {}
-for db in config.sequence_index_dir:
-    db_name = db["name"]
-    all_index["sequence"][db_name] = {}
+for db in config.sequence:
+    all_index["sequence"][db] = {}
 
 all_index["structure"] = {}
-for db in config.structure_index_dir:
-    db_name = db["name"]
-    all_index["structure"][db_name] = {}
+for db in config.structure:
+    all_index["structure"][db] = {}
 
 # Load text index
 all_index["text"] = {}
 valid_subsections = {}
-for db in config.text_index_dir:
-    db_name = db["name"]
-    index_dir = db["index_dir"]
+for db_name, subsections in config.text.items():
     all_index["text"][db_name] = {}
-    text_dir = f"{index_dir}/subsections"
 
-    # Remove "Taxonomic lineage" from sequence_level. This is a special case which we don't need to index.
     valid_subsections[db_name] = set()
-    sequence_level.add("Global")
-    sequence_level.add("Enzyme commission number")
-    for subsection in sequence_level:
-        index_path = f"{text_dir}/{subsection.replace(' ', '_')}.index"
-        if not os.path.exists(index_path):
-            continue
-
+    for subsection in subsections:
         all_index["text"][db_name][subsection] = {}
         valid_subsections[db_name].add(subsection)
 
