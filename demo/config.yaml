@@ -7,7 +7,7 @@ retrieval:
 
   sequence_index_dir:
     - name: Swiss-Prot
-      index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/sequence
+      index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/sequence
 
     - name: UniRef50
       index_dir: /sujin/Datasets/ProTrek/faiss_index/UniRef50/ProTrek_650M_UniRef50/sequence
@@ -25,11 +25,11 @@ retrieval:
       index_dir: /sujin/Datasets/ProTrek/faiss_index/PDB/ProTrek_650M_UniRef50/sequence
 
     - name: Insect
-      index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/insect_sequence
+      index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/insect_sequence
 
   structure_index_dir:
     - name: Swiss-Prot
-      index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/structure
+      index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/structure
     - name: PDB
       index_dir: /sujin/Datasets/ProTrek/faiss_index/PDB/ProTrek_650M_UniRef50/structure
 
@@ -37,7 +37,7 @@ retrieval:
   #  - name: UniProt
   #    index_dir: /sujin/Datasets/ProTrek/faiss_index/UniRef50/ProTrek_650M_UniRef50/text
     - name: Swiss-Prot
-      index_dir: /sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/text
+      index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/text
 
 ############################################
 #     Config for embedding generation      #
