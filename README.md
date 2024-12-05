@@ -6,7 +6,6 @@
 
 The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://www.biorxiv.org/content/10.1101/2024.05.30.596740v2).
 
-ProTrek4Search (old): https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50old
 
 ProTrek4Search (new): http://search-protrek.com/  (Update: adding OMG database)
 
