@@ -27,6 +27,9 @@ retrieval:
     - name: Insect
       index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/insect_sequence
 
+    - name: Beetle
+      index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/beetle_sequence
+
   structure_index_dir:
     - name: Swiss-Prot
       index_dir: /storage/sujin/Datasets/ProTrek/faiss_index/SwissProt/ProTrek_650M_UniRef50/structure
@@ -56,7 +59,8 @@ frontend:
     'Uncharacterized',
     'OMG_prot50',
     'PDB',
-    'Insect'
+#    'Insect',
+#    "Beetle",
   ]
 
   structure: [
