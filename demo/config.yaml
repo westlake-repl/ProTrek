@@ -46,7 +46,7 @@ retrieval:
 #     Config for embedding generation      #
 ############################################
 embedding_generation:
-  model_dir: /storage/sujin/Models/ProTrek/ProTrek_650M_UniRef50
+  model_dir: ../../weights/ProTrek_650M_UniRef50
 
 
 ############################################

@@ -1,22 +1,18 @@
 # ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning
-<a href="https://www.biorxiv.org/content/10.1101/2024.05.30.596740v1"><img src="https://img.shields.io/badge/Paper-bioRxiv-green" style="max-width: 100%;"></a>
-<a href="https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-red?label=Demo" style="max-width: 100%;"></a>
+<a href="https://doi.org/10.1101/2024.05.30.596740"><img src="https://img.shields.io/badge/Paper-bioRxiv-green" style="max-width: 100%;"></a>
+<a href="http://search-protrek.com/"><img src="https://img.shields.io/badge/🔍ProTrek-red?label=Server" style="max-width: 100%;"></a>
 <a href="https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
 <a href="https://cbirt.net/charting-the-protein-universe-with-protreks-tri-modal-contrastive-learning/" alt="blog"><img src="https://img.shields.io/badge/Blog-Medium-purple" /></a> 
 
-The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://www.biorxiv.org/content/10.1101/2024.05.30.596740v2).
+The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://doi.org/10.1101/2024.05.30.596740).
 
-
-ProTrek4Search (new): http://search-protrek.com/  (Update: adding OMG database)
-
-ColabProTrek: https://colab.research.google.com/drive/1On2xQU0d7351bIBgZpz2T0VUp2gZium0?usp=sharing
-
-ColabProTrek has joined [OPMC](https://theopmc.github.io/). If you find it useful for your research, please consider also cite the original OPMC [paper](https://www.biorxiv.org/content/10.1101/2024.05.24.595648v4).
+Quickly try our online server [here](http://search-protrek.com/).
 
 If you have any question about the paper or the code, feel free to raise an issue!
 
 <details open><summary><b>Table of contents</b></summary>
 
+- [News](#News)
 - [Overview](#Overview)
 - [Environment installation](#Environment-installation)
 - [Download model weights](#Download-model-weights)
@@ -24,6 +20,11 @@ If you have any question about the paper or the code, feel free to raise an issu
 - [Obtain embeddings and calculate similarity score](#Obtain-embeddings-and-calculate-similarity-score)
 - [Deploy your demo locally](#Deploy-your-demo-locally)
 </details>
+
+## News
+- **2024/09/27:** We added OMG database, which contains 200M protein sequences from metagenomic sequencing.
+- **2024/09/04:** We built [ColabProTrek](https://colab.research.google.com/github/westlake-repl/SaprotHub/blob/main/colab/ColabProTrek.ipynb?hl=en).
+ColabProTrek has joined [OPMC](https://theopmc.github.io/). If you find it useful for your research, please consider also cite the original OPMC [paper](https://doi.org/10.1101/2024.05.24.595648).
 
 ## Overview
 ProTrek is a tri-modal protein language model that jointly models protein sequence, structure and function (SSF). It employs
