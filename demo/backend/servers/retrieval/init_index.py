@@ -15,7 +15,7 @@ def load_index():
     all_index["sequence"] = {}
     for db in tqdm(config.sequence_index_dir, desc="Loading sequence index..."):
         db_name = db["name"]
-        index_dir = db["index_dir"]
+        index_dir = f"{ROOT_DIR}/{db['index_dir']}"
 
         index_path = f"{index_dir}/sequence.index"
         if os.path.exists(index_path):
@@ -48,7 +48,7 @@ def load_index():
     all_index["structure"] = {}
     for db in tqdm(config.structure_index_dir, desc="Loading structure index..."):
         db_name = db["name"]
-        index_dir = db["index_dir"]
+        index_dir = f"{ROOT_DIR}/{db['index_dir']}"
 
         index_path = f"{index_dir}/structure.index"
         structure_index = FaissIndex(index_path)
@@ -63,7 +63,7 @@ def load_index():
     valid_subsections = {}
     for db in tqdm(config.text_index_dir, desc="Loading text index..."):
         db_name = db["name"]
-        index_dir = db["index_dir"]
+        index_dir = f"{ROOT_DIR}/{db['index_dir']}"
         all_index["text"][db_name] = {}
         text_dir = f"{index_dir}/subsections"
 
@@ -92,8 +92,8 @@ def load_index():
 
 
 # Load the config file
-base_dir = os.path.dirname(__file__)
-config_path = f"{base_dir}/../../../config.yaml"
+ROOT_DIR = __file__.rsplit("/", 5)[0]
+config_path = f"{ROOT_DIR}/demo/config.yaml"
 with open(config_path, 'r', encoding='utf-8') as r:
     config = EasyDict(yaml.safe_load(r)).retrieval
 

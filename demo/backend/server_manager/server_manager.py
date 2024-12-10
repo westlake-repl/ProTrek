@@ -1,59 +1,27 @@
 import sys
 
-root_dir = __file__.rsplit("/", 3)[0]
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
+ROOT_DIR = __file__.rsplit("/", 4)[0]
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
 
 import uvicorn
 import os
 import requests
-import time
 import socket
 
+from utils.server_tool import check_port_in_use, get_ip, check_port
 from fastapi import FastAPI
 
 
 app = FastAPI()
-base_dir = os.path.dirname(__file__)
+BACKEND_DIR = f"{ROOT_DIR}/demo/backend"
 
 # Map the function name to the server directory
 FUNCTION_MAP = {
-    "search": f"{base_dir}/servers/retrieval/server_list",
-    "compute": f"{base_dir}/servers/retrieval/server_list",
-    "generate_embedding": f"{base_dir}/servers/embedding_generation/server_list",
+    "search": f"{BACKEND_DIR}/servers/retrieval/server_list",
+    "compute": f"{BACKEND_DIR}/servers/retrieval/server_list",
+    "generate_embedding": f"{BACKEND_DIR}/servers/embedding_generation/server_list",
 }
-
-
-# Get the IP address of the server
-def get_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-
-    finally:
-        s.close()
-        return ip
-
-
-# Check whether a server is active
-def check_port(ip, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(1)
-
-    try:
-        result = sock.connect_ex((ip, port))
-        if result == 0:
-            return True
-        else:
-            return False
-
-    except Exception as e:
-        print(e)
-        return False
-
-    finally:
-        sock.close()
 
 
 def get_idle_node(server_dir: str) -> str:
@@ -176,6 +144,9 @@ def generate_embedding(input: str, input_type: str):
 
     response = requests.get(url=url, params=params).json()
     return response
+
+
+PORT = 7861
 
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@ if root_dir not in sys.path:
     sys.path.append(root_dir)
 
 import uvicorn
-import socket
 import os
 import torch
 import json
@@ -15,6 +14,8 @@ import numpy as np
 from init_index import all_index
 from fastapi import FastAPI
 from tqdm import tqdm
+from utils.server_tool import check_port_in_use, get_ip
+
 
 app = FastAPI()
 BASE_DIR = os.path.dirname(__file__)
@@ -169,33 +170,6 @@ def set_state(state: str):
     flag_path = f"{BASE_DIR}/server_list/{get_ip()}:{PORT}.flag"
     with open(flag_path, "w") as w:
         w.write(state)
-
-
-# Get the IP address of the server
-def get_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-
-    finally:
-        s.close()
-        return ip
-
-
-# Check whether a port is in use
-def check_port_in_use(port, host='127.0.0.1'):
-    s = None
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(1)
-        s.connect((host, int(port)))
-        return True
-    except socket.error:
-        return False
-    finally:
-        if s:
-            s.close()
 
 
 PORT = 7862

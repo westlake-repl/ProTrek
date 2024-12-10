@@ -69,9 +69,9 @@ huggingface-cli download westlake-repl/ProTrek_650M_UniRef50 \
 > HF_ENDPOINT=https://hf-mirror.com"
 
 ## Download Foldseek binary file
-To run examples correctly and deploy your demo locally, please at first download the [Foldseek](https://github.com/steineggerlab/foldseek) 
+To run examples correctly and deploy your demo locally, please at first download the Foldseek
 binary file from [here](https://drive.google.com/file/d/1B_9t3n_nlj8Y3Kpc_mMjtMdY0OPYa7Re/view?usp=sharing) and place 
-it in the `bin` folder. Then add the execute permission to the binary file.
+it into the `bin` folder. Then add the execute permission to the binary file.
 ```
 chmod +x bin/foldseek
 ```
@@ -140,30 +140,33 @@ Similarity score between protein structure and text: 11.866174697875977
 """
 ```
 
-## Deploy your demo locally
-We provide an [online demo](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50) for ProTrek. For users who want to deploy the demo locally, please follow the steps below.
+## Deploy your server locally
+We provide an [online server](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50) for using ProTrek. If you want to deploy the server locally, please follow the steps
+below:
 
-### Step 1: Download the Foldseek binary file
+### Step 1: Install the environment
+Please follow the instructions in the [Environment installation](#Environment-installation) section.
+
+### Step 2: Download the Foldseek binary file
 Please follow the instructions in the [Download Foldseek binary file](#Download-Foldseek-binary-file) section.
 
-### Step 2: Download the pre-trained model weights
-Currently we support the deployment of [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50).
-Please download all files and put them in the `weights` directory, e.g. `weights/ProTrek_650M_UniRef50/...`. The example
+### Step 3: Download the pre-trained model weights
+Please download the weights of [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50) and put them into the `weights` directory, 
+i.e. `weights/ProTrek_650M_UniRef50/...`. The example
 code is in the [Download model weights](#Download-model-weights) section.
 
-### Step 3: Download pre-computed faiss index
-We provide pre-computed protein embeddings and text embeddings using [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50),
-and build faiss index for fast similarity search. Please download the pre-computed faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_650M_UniRef50/tree/main)
-and put it in the `weights/faiss_index` directory, e.g. `weights/faiss_index/faiss_index_ProTrek_650M_UniRef50/...`. We
+### Step 4: Download pre-computed faiss index
+We have built faiss index for fast retrieval using the embedding computed by [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50). 
+Please download the pre-computed faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_650M_UniRef50/tree/main)
+and put it into the `faiss_index` directory, i.e. `faiss_index/SwissProt/...`. We
 provide an example to download the pre-computed faiss index.
 ```
-huggingface-cli download westlake-repl/faiss_index_ProTrek_650M_UniRef50 \
-                         --repo-type dataset \
-                         --local-dir weights/faiss_index/faiss_index_ProTrek_650M_UniRef50
+huggingface-cli download westlake-repl/faiss_index --repo-type dataset --local-dir faiss_index/
 ```
 
-### Step 4: Run the demo
-After all data and files are prepared, you can run the demo by executing the following command.
+### Step 5: Run the server
+After all data and files are prepared, you can run the server by executing the following commands.
 ```
+# Start backend servers
 python demo/run.py 
 ```

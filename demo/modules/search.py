@@ -18,7 +18,7 @@ from utils.constants import sequence_level
 
 
 tmp_file_path = "/tmp/results.tsv"
-tmp_plot_path = "/tmp/histogram.svg"
+tmp_plot_path = "/tmp/histogram.png"
 plot_available = True
 record_available = True
 

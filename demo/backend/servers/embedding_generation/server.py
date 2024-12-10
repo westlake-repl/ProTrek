@@ -9,7 +9,6 @@ import socket
 import os
 import torch
 import glob
-import yaml
 
 from easydict import EasyDict
 from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
@@ -89,23 +88,16 @@ PORT = 7862
 while check_port_in_use(PORT):
     PORT += 1
 
-# Load the config file
-base_dir = os.path.dirname(__file__)
-config_path = f"{base_dir}/../../../config.yaml"
-with open(config_path, 'r', encoding='utf-8') as r:
-    config = EasyDict(yaml.safe_load(r)).embedding_generation
-
-print(ROOT_DIR)
-raise
+model_dir = f"{ROOT_DIR}/weights/ProTrek_650M_UniRef50"
 
 # Load model
 model_config = {
-    "protein_config": glob.glob(f"{ROOT_DIR}/weights/esm2_*")[0],
-    "text_config": f"{ROOT_DIR}/weights/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-    "structure_config": glob.glob(f"{ROOT_DIR}/weights/foldseek_*")[0],
+    "protein_config": glob.glob(f"{model_dir}/esm2_*")[0],
+    "text_config": f"{model_dir}/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+    "structure_config": glob.glob(f"{model_dir}/foldseek_*")[0],
     "load_protein_pretrained": False,
     "load_text_pretrained": False,
-    "from_checkpoint": glob.glob(f"{config.model_dir}/*.pt")[0]
+    "from_checkpoint": glob.glob(f"{model_dir}/*.pt")[0]
 }
 
 model = ProTrekTrimodalModel(**model_config)
