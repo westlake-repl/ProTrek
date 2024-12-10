@@ -1,8 +1,8 @@
 import sys
 
-root_dir = __file__.rsplit("/", 5)[0]
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
+ROOT_DIR = __file__.rsplit("/", 5)[0]
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
 
 import uvicorn
 import socket
@@ -95,11 +95,14 @@ config_path = f"{base_dir}/../../../config.yaml"
 with open(config_path, 'r', encoding='utf-8') as r:
     config = EasyDict(yaml.safe_load(r)).embedding_generation
 
+print(ROOT_DIR)
+raise
+
 # Load model
 model_config = {
-    "protein_config": glob.glob(f"{config.model_dir}/esm2_*")[0],
-    "text_config": f"{config.model_dir}/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-    "structure_config": glob.glob(f"{config.model_dir}/foldseek_*")[0],
+    "protein_config": glob.glob(f"{ROOT_DIR}/weights/esm2_*")[0],
+    "text_config": f"{ROOT_DIR}/weights/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+    "structure_config": glob.glob(f"{ROOT_DIR}/weights/foldseek_*")[0],
     "load_protein_pretrained": False,
     "load_text_pretrained": False,
     "from_checkpoint": glob.glob(f"{config.model_dir}/*.pt")[0]
