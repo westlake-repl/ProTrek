@@ -165,8 +165,7 @@ huggingface-cli download westlake-repl/faiss_index --repo-type dataset --local-d
 ```
 
 ### Step 5: Run the server
-After all data and files are prepared, you can run the server by executing the following commands.
+After all data and files are prepared, you can run the server by executing the following command:
 ```
-# Start backend servers
-python demo/run.py 
+python demo/run_pipeline.py
 ```

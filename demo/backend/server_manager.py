@@ -1,15 +1,14 @@
 import sys
 
-ROOT_DIR = __file__.rsplit("/", 4)[0]
+ROOT_DIR = __file__.rsplit("/", 3)[0]
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 import uvicorn
 import os
 import requests
-import socket
 
-from utils.server_tool import check_port_in_use, get_ip, check_port
+from utils.server_tool import get_ip, check_port
 from fastapi import FastAPI
 
 

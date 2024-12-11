@@ -10,6 +10,7 @@ import torch
 import json
 import requests
 import numpy as np
+import argparse
 
 from init_index import all_index
 from fastapi import FastAPI
@@ -172,10 +173,19 @@ def set_state(state: str):
         w.write(state)
 
 
-PORT = 7862
-while check_port_in_use(PORT):
-    PORT += 1
+# Specify the server port
+parser = argparse.ArgumentParser()
+parser.add_argument('--port', type=int, default=None)
+args = parser.parse_args()
 
+if args.port is None:
+    PORT = 7862
+    while check_port_in_use(PORT):
+        PORT += 1
+
+else:
+    PORT = args.port
+    
 
 if __name__ == "__main__":
     # Generate IP flag

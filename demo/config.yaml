@@ -49,17 +49,17 @@ retrieval:
 frontend:
   sequence: [
     'Swiss-Prot',
-    'UniRef50',
-    'Uncharacterized',
-    'OMG_prot50',
-    'PDB',
+#    'UniRef50',
+#    'Uncharacterized',
+#    'OMG_prot50',
+#    'PDB',
 #    'Insect',
 #    "Beetle",
   ]
 
   structure: [
       'Swiss-Prot',
-      'PDB'
+#      'PDB'
   ]
 
   text:

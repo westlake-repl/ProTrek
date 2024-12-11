@@ -9,8 +9,8 @@ import socket
 import os
 import torch
 import glob
+import argparse
 
-from easydict import EasyDict
 from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
 from fastapi import FastAPI
 
@@ -84,9 +84,18 @@ def check_port_in_use(port, host='127.0.0.1'):
             s.close()
 
 
-PORT = 7862
-while check_port_in_use(PORT):
-    PORT += 1
+# Specify the server port
+parser = argparse.ArgumentParser()
+parser.add_argument('--port', type=int, default=None)
+args = parser.parse_args()
+
+if args.port is None:
+    PORT = 7862
+    while check_port_in_use(PORT):
+        PORT += 1
+
+else:
+    PORT = args.port
 
 model_dir = f"{ROOT_DIR}/weights/ProTrek_650M_UniRef50"
 
