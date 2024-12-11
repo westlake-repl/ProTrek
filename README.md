@@ -172,3 +172,16 @@ specified URL to use the server.
 # Important: The server will occupy the ports 7860 to 7863, please make sure these ports are available!
 python demo/run_pipeline.py
 ```
+
+## Citation
+If you find ProTrek useful for your research, please consider citing the following paper:
+```
+@article{su2024protrek,
+  title={ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning},
+  author={Su, Jin and Zhou, Xibin and Zhang, Xuting and Yuan, Fajie},
+  journal={bioRxiv},
+  pages={2024--05},
+  year={2024},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
