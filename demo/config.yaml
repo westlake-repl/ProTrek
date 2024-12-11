@@ -9,36 +9,11 @@ retrieval:
     - name: Swiss-Prot
       index_dir: faiss_index/SwissProt/ProTrek_650M_UniRef50/sequence
 
-#    - name: UniRef50
-#      index_dir: faiss_index/UniRef50/ProTrek_650M_UniRef50/sequence
-#      nprobe: 1000
-#
-#    - name: Uncharacterized
-#      index_dir: faiss_index/Uncharacterized/ProTrek_650M_UniRef50/sequence
-#      nprobe: 1000
-#
-#    - name: OMG_prot50
-#      index_dir: faiss_index/OMG_prot50/ProTrek_650M_UniRef50/sequence
-#      nprobe: 100
-#
-#    - name: PDB
-#      index_dir: faiss_index/PDB/ProTrek_650M_UniRef50/sequence
-#
-#    - name: Insect
-#      index_dir: faiss_index/SwissProt/ProTrek_650M_UniRef50/insect_sequence
-#
-#    - name: Beetle
-#      index_dir: faiss_index/SwissProt/ProTrek_650M_UniRef50/beetle_sequence
-
   structure_index_dir:
     - name: Swiss-Prot
       index_dir: faiss_index/SwissProt/ProTrek_650M_UniRef50/structure
-#    - name: PDB
-#      index_dir: faiss_index/PDB/ProTrek_650M_UniRef50/structure
 
   text_index_dir:
-  #  - name: UniProt
-  #    index_dir: /sujin/Datasets/ProTrek/faiss_index/UniRef50/ProTrek_650M_UniRef50/text
     - name: Swiss-Prot
       index_dir: faiss_index/SwissProt/ProTrek_650M_UniRef50/text
 
@@ -49,17 +24,10 @@ retrieval:
 frontend:
   sequence: [
     'Swiss-Prot',
-#    'UniRef50',
-#    'Uncharacterized',
-#    'OMG_prot50',
-#    'PDB',
-#    'Insect',
-#    "Beetle",
   ]
 
   structure: [
       'Swiss-Prot',
-#      'PDB'
   ]
 
   text:
