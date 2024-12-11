@@ -90,7 +90,9 @@ def search(manager_ip_port: str,
             item[1] /= temperature
 
         all_scores /= temperature
-
+        
+        print(len(all_scores))
+        
         # Retrieve ids based on rank
         topk_ids = []
         for i in tqdm(range(topk)):
