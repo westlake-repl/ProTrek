@@ -152,20 +152,23 @@ Please follow the instructions in the [Download Foldseek binary file](#Download-
 
 ### Step 3: Download the pre-trained model weights
 Please download the weights of [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50) and put them into the `weights` directory, 
-i.e. `weights/ProTrek_650M_UniRef50/...`. The example
-code is in the [Download model weights](#Download-model-weights) section.
+i.e. `weights/ProTrek_650M_UniRef50/...`. Please follow the instructions in the 
+[Download model weights](#Download-model-weights) section.
 
 ### Step 4: Download pre-computed faiss index
 We have built faiss index for fast retrieval using the embedding computed by [ProTrek_650M_UniRef50](https://huggingface.co/westlake-repl/ProTrek_650M_UniRef50). 
-Please download the pre-computed faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_650M_UniRef50/tree/main)
-and put it into the `faiss_index` directory, i.e. `faiss_index/SwissProt/...`. We
-provide an example to download the pre-computed faiss index.
+Please download the faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_650M_UniRef50/tree/main)
+and put it into the `faiss_index` directory, i.e. `faiss_index/SwissProt/...`. You can follow the below command to
+download the faiss index.
 ```
 huggingface-cli download westlake-repl/faiss_index --repo-type dataset --local-dir faiss_index/
 ```
 
 ### Step 5: Run the server
-After all data and files are prepared, you can run the server by executing the following command:
+After all data and files are prepared, you can run the server by executing the following command. Once you see the
+prompt ``All servers are active! You can now visit http://127.0.0.1:7860/ to start to use.``, you can visit the 
+specified URL to use the server.
 ```
+# Important: The server will occupy the ports 7860 to 7863, please make sure these ports are available!
 python demo/run_pipeline.py
 ```

@@ -51,8 +51,11 @@ def parse_pdb_file(input_type: str, file: str, chain: str) -> str:
         else:
             return parsed_seqs[1].lower()
     
-    except Exception:
+    except KeyError:
         raise gr.Error(f"Chain '{chain}' not found in the pdb file. Please check the chain id and try again.")
+    
+    except Exception as e:
+        raise gr.Error(str(e))
 
 
 def set_upload_visible(visible: bool) -> gr.Interface:
