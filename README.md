@@ -18,7 +18,9 @@ If you have any question about the paper or the code, feel free to raise an issu
 - [Download model weights](#Download-model-weights)
 - [Download Foldseek binary file](#Download-Foldseek-binary-file)
 - [Obtain embeddings and calculate similarity score](#Obtain-embeddings-and-calculate-similarity-score)
-- [Deploy your demo locally](#Deploy-your-demo-locally)
+- [Deploy your server locally](#Deploy-your-server-locally)
+- [Add custom database](#Add-custom-database)
+- [Citation](#Citation)
 </details>
 
 ## News
@@ -141,8 +143,8 @@ Similarity score between protein structure and text: 11.866174697875977
 ```
 
 ## Deploy your server locally
-We provide an [online server](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50) for using ProTrek. If you want to deploy the server locally, please follow the steps
-below:
+We provide an [online server](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_UniRef50) for using ProTrek.
+If you want to deploy the server locally, please follow the steps below:
 
 ### Step 1: Install the environment
 Please follow the instructions in the [Environment installation](#Environment-installation) section.
@@ -172,6 +174,41 @@ specified URL to use the server.
 # Important: The server will occupy the ports 7860 to 7863, please make sure these ports are available!
 python demo/run_pipeline.py
 ```
+
+## Add custom database
+You can add your custom database to the server for retrieval. Please follow the instructions below:
+
+### Step 1: Build the faiss index
+You can build the faiss index through a ``.fasta`` file:
+```
+python scripts/generate_database.py --fasta example/custom_db.fasta --save_dir faiss_index/Custom/ProTrek_650M_UniRef50/sequence
+```
+
+### Step 2: Add the index to the config file
+You need to add the index to the ``demo/config.yaml``:
+```
+...
+
+sequence_index_dir:
+  - name: Swiss-Prot
+    index_dir: faiss_index/SwissProt/ProTrek_650M_UniRef50/sequence
+
+# Add your custom database here
+  - name: Custom
+    index_dir: faiss_index/Custom/ProTrek_650M_UniRef50/sequence
+    
+...
+
+frontend:
+  sequence: [
+    'Swiss-Prot',
+    # Add your custom database here
+    'Custom',
+  ]
+
+...
+```
+Finally, you can run the server to use the custom database.
 
 ## Citation
 If you find ProTrek useful for your research, please consider citing the following paper:

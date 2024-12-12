@@ -90,7 +90,7 @@ def main(args):
             seq_repr = model.get_protein_repr([seq])
             embeddings[i] = seq_repr.cpu().numpy()
 
-    mprs = MultipleProcessRunnerSimplifier(items, do, n_process=n_process*2, split_strategy="queue", log_step=1000)
+    mprs = MultipleProcessRunnerSimplifier(items, do, n_process=n_process*2, split_strategy="queue", log_step=1)
     mprs.run()
 
     ##########################################
