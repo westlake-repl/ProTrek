@@ -68,7 +68,7 @@ class FaissIndex:
 
             scores, ranks = index.search(query, max_num)
             scores, ranks = scores[0], ranks[0]
-            
+
             # Remove inf values
             selector = scores > -1
             scores = scores[selector]
@@ -84,11 +84,11 @@ class FaissIndex:
             
             all_scores += scores.tolist()
             
-            for i in range(k):
+            for i in range(min(k, len(ranks))):
                 score = scores[i]
                 rk = ranks[i]
                 results.append([index_rk, score, int(rk)])
-            
+
         results = sorted(results, key=lambda x: x[1], reverse=True)[:k]
         
         # # If the index is IVFPQ, we need to calculate the real scores using raw embeddings
