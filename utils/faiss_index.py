@@ -28,7 +28,7 @@ class FaissIndex:
         self.index_list = []
         self.ntotal = 0
         self.nprobe = nprobe
-        for path in index_path:
+        for path in tqdm(index_path, "Loading index..."):
             if IO_FLAG_MMAP:
                 index = faiss.read_index(path, faiss.IO_FLAG_MMAP)
             else:
