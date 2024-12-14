@@ -35,8 +35,10 @@ def load_index():
                     continue
 
                 index_path = f"{index_dir}/{dir_name}/sequence.index"
-                index_files.append(index_path)
+                if not os.path.exists(index_path):
+                    continue
 
+                index_files.append(index_path)
                 id_path = f"{index_dir}/{dir_name}/ids.tsv"
                 ids.append(FileReader(id_path))
 
