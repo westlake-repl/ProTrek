@@ -374,7 +374,7 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
 
 # Build the searching block
 def build_search_module():
-    gr.Markdown(f"# Search from databases")
+    gr.Markdown(f"# Search [protein databases](https://github.com/westlake-repl/ProTrek/wiki/Database-introduction) with [ProTrek](https://github.com/westlake-repl/ProTrek)")
     with gr.Row(equal_height=True):
         with gr.Column():
             # Set input type
@@ -386,18 +386,21 @@ def build_search_module():
                     ["sequence", "structure", "text"],
                     label="Output type (e.g. 'sequence' means returning qualified sequences)",
                     value="sequence",
-                    scale=2,
+                    scale=1,
                 )
-
+                
                 # If the output type is "text", provide an option to choose the subsection of text
                 text_db = list(all_index["text"].keys())[0]
                 sequence_db = list(all_index["sequence"].keys())[0]
-                subsection_type = gr.Dropdown(valid_subsections[text_db], label="Subsection of text", value="Function",
+                subsection_type = gr.Dropdown(valid_subsections[text_db], label="Subsection of text",
+                                              value="Function",
                                               interactive=True, visible=False, scale=0)
                 
                 db_type = gr.Dropdown(all_index["sequence"].keys(), label="Database", value=sequence_db,
-                                              interactive=True, visible=True, scale=0)
-
+                                          interactive=True, visible=True, scale=0)
+                
+                # gr.Markdown("hello")
+                
             with gr.Row():
                 # Input box
                 input = gr.Text(label="Input")
@@ -445,6 +448,6 @@ def build_search_module():
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
         search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type, db_type],
-                      outputs=[results, download_btn, histogram], concurrency_limit=8)
+                      outputs=[results, download_btn, histogram], concurrency_limit=4)
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
