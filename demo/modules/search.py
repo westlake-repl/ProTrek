@@ -39,7 +39,7 @@ samples = {
     "text": [
         ["Proteins with zinc bindings."],
         ["Proteins locating at cell membrane."],
-        ["Protein that serves as an enzyme."]
+        ["A fluorescent protein."]
     ],
 }
 
@@ -253,7 +253,7 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         if query_type == "text":
             topk_ids.append(now_id)
         else:
-            if db in ["UniRef50", "Uncharacterized", "Swiss-Prot"]:
+            if db in ["UniRef50", "Uncharacterized", "Swiss-Prot", "Baker's yeast"]:
                 # Provide link to uniprot website
                 topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
             elif db == "PDB":
