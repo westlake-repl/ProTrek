@@ -39,7 +39,7 @@ samples = {
     "text": [
         ["Proteins with zinc bindings."],
         ["Proteins locating at cell membrane."],
-        ["A fluorescent protein."]
+        ["Protein that serves as an enzyme."]
     ],
 }
 
@@ -172,6 +172,8 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
     elif input_type == "structure":
         input = input.lower()
     
+    input = input.replace("\n", "")
+    
     # Send search request
     params = {
         "input": input,
@@ -256,10 +258,16 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             if db in ["UniRef50", "Uncharacterized", "Swiss-Prot", "Baker's yeast"]:
                 # Provide link to uniprot website
                 topk_ids.append(f"[{now_id}](https://www.uniprot.org/uniprotkb/{now_id})")
+                
             elif db == "PDB":
                 # Provide link to pdb website
                 pdb_id = now_id.split("-")[0]
                 topk_ids.append(f"[{now_id}](https://www.rcsb.org/structure/{pdb_id})")
+                
+            elif db == "NCBI":
+                # Provide link to ncbi website
+                topk_ids.append(f"[{now_id}](https://www.ncbi.nlm.nih.gov/protein/{now_id})")
+                
             else:
                 topk_ids.append(now_id)
 
@@ -375,6 +383,7 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
 # Build the searching block
 def build_search_module():
     gr.Markdown(f"# Search [protein databases](https://github.com/westlake-repl/ProTrek/wiki/Database-introduction) with [ProTrek](https://github.com/westlake-repl/ProTrek)")
+    gr.Markdown(f"**Note: ProTrek does not support viral protein predictions for security reasons.**")
     with gr.Row(equal_height=True):
         with gr.Column():
             # Set input type
