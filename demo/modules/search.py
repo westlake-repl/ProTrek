@@ -39,7 +39,7 @@ samples = {
     "text": [
         ["Proteins with zinc bindings."],
         ["Proteins locating at cell membrane."],
-        ["Protein that serves as an enzyme."]
+        ["Catalyzes the hydrolysis of cutin, a polyester that forms the structure of plant cuticle "]
     ],
 }
 
@@ -315,10 +315,22 @@ def change_input_type(choice: str):
     # Set visibility of upload button
     if choice == "text":
         visible = False
-    else:
+        label = "Input (We recommend describing the protein's properties rather than using a simple numerical value like an EC number)"
+        
+    elif choice == "sequence":
         visible = True
+        label = "Input (Paste a protein sequence. See examples below)"
     
-    return gr.update(samples=samples[choice]), "", gr.update(visible=visible), gr.update(visible=visible)
+    elif choice == "structure":
+        visible = True
+        label = "Input (Paste a protein 3Di sequence. See examples below)"
+    
+    return (
+        gr.update(samples=samples[choice]),
+        gr.update(label=label, value=""),
+        gr.update(visible=visible),
+        gr.update(visible=visible)
+    )
 
 
 # Load example from dataset
@@ -412,7 +424,9 @@ def build_search_module():
                 
             with gr.Row():
                 # Input box
-                input = gr.Text(label="Input")
+                input = gr.Text(
+                    label="Input (We recommend describing the protein's properties rather than using a simple numerical value like an EC number)"
+                )
                 
                 # Provide an upload button to upload a pdb file
                 upload_btn, chain_box = upload_pdb_button(visible=False, chain_visible=False)
