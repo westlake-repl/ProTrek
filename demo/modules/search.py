@@ -301,11 +301,17 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
             info_df = pd.DataFrame({"Id": ["Download the file to check all results"], seq_column_name: ["..."], "Length": ["..."], "Matching score": ["..."]},
                                    index=[1000])
             df = pd.concat([df, info_df], axis=0)
-
+    
+    # This is to return the full results via Gradio API call
+    hidden_df = pd.read_csv(tmp_file_path, sep="\t")
+    
     output = df.to_markdown()
-    return (output,
-            gr.DownloadButton(label="Download results", value=tmp_file_path, visible=True, scale=0),
-            gr.update(value=tmp_plot_path, visible=True))
+    return (
+        output,
+        gr.DownloadButton(label="Download results", value=tmp_file_path, visible=True, scale=0),
+        gr.update(value=tmp_plot_path, visible=True),
+        gr.DataFrame(hidden_df)
+    )
 
 
 def change_input_type(choice: str):
@@ -465,12 +471,14 @@ def build_search_module():
         with gr.Row():
             with gr.Column():
                 results = gr.Markdown(label="results", height=450)
+                # This is to return the full results via Gradio API call
+                hidden_results = gr.DataFrame(visible=False)
                 download_btn = gr.DownloadButton(label="Download results", visible=False)
             
                 # Plot the distribution of scores
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
         search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type, db_type],
-                      outputs=[results, download_btn, histogram], concurrency_limit=4)
+                      outputs=[results, download_btn, histogram, hidden_results], concurrency_limit=4)
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
