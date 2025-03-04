@@ -4,11 +4,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import re
 import yaml
 import requests
 import json
 import time
 
+from spellchecker import SpellChecker
 from easydict import EasyDict
 from scipy.stats import norm
 # from .init_model import model, all_index, valid_subsections
@@ -16,6 +18,9 @@ from .blocks import upload_pdb_button, parse_pdb_file
 from Bio.Align import PairwiseAligner
 from utils.constants import sequence_level
 
+
+# Initialize spell checker
+spell = SpellChecker()
 
 tmp_file_path = "/tmp/results.tsv"
 tmp_plot_path = "/tmp/histogram.png"
@@ -322,20 +327,24 @@ def change_input_type(choice: str):
     if choice == "text":
         visible = False
         label = "Input (We recommend describing the protein's properties rather than using a simple numerical value like an EC number)"
+        typo_check_visible = True
         
     elif choice == "sequence":
         visible = True
         label = "Input (Paste a protein sequence. See examples below)"
+        typo_check_visible = False
     
     elif choice == "structure":
         visible = True
         label = "Input (Paste a protein 3Di sequence. See examples below)"
+        typo_check_visible = False
     
     return (
         gr.update(samples=samples[choice]),
         gr.update(label=label, value=""),
         gr.update(visible=visible),
-        gr.update(visible=visible)
+        gr.update(visible=visible),
+        gr.update(visible=typo_check_visible)
     )
 
 
@@ -398,6 +407,41 @@ def change_db_type(query_type: str, subsection_type: str, db_type: str):
     return subsection_update, gr.update(visible=nprobe_visible)
 
 
+def check_typos(input_type: str, input: str):
+    """
+    Check typos in the input.
+    Args:
+        input_type: Type of input
+        input: Input sequence
+
+    Returns:
+        Typos in the input
+    """
+    if input_type == "text":
+        hint = "You may have typos in the input:\n\n"
+        if input.strip() == "":
+            return gr.Markdown("")
+        
+        # Preprocess the input to remove all non-alphabetic characters
+        input = re.sub(r'[^a-zA-Z\s-]', '', input)
+        words = input.strip().split(" ")
+        misspelled = spell.unknown(words)
+        for typo in misspelled:
+            correction = spell.correction(typo)
+            if correction is not None:
+                hint += f"- {typo} --> {correction}\n\n"
+        
+        hint += "Please **check it carefully before searching** to avoid unexpected retrieval results."
+        
+        if len(misspelled) > 0:
+            return gr.Markdown(hint)
+        else:
+            return gr.Markdown("")
+    
+    else:
+        return gr.update()
+
+
 # Build the searching block
 def build_search_module():
     gr.Markdown(f"# Search [protein databases](https://github.com/westlake-repl/ProTrek/wiki/Database-introduction)"
@@ -436,9 +480,13 @@ def build_search_module():
                     label="Input (We recommend describing the protein's properties rather than using a simple numerical value like an EC number)"
                 )
                 
-                # Provide an upload button to upload a pdb file
-                upload_btn, chain_box = upload_pdb_button(visible=False, chain_visible=False)
-                upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn, chain_box], outputs=[input])
+                with gr.Column(visible=True):
+                    # Provide an upload button to upload a pdb file
+                    upload_btn, chain_box = upload_pdb_button(visible=False, chain_visible=False)
+                    upload_btn.upload(parse_pdb_file, inputs=[input_type, upload_btn, chain_box], outputs=[input])
+                    
+                    # Provide typo check for the text input
+                    typo_check = gr.Markdown("")
             
             
             # If the index is of IVF type, provide an option to choose the number of clusters.
@@ -464,7 +512,8 @@ def build_search_module():
             examples.click(fn=load_example, inputs=[examples], outputs=input)
             
             # Change examples based on input type
-            input_type.change(fn=change_input_type, inputs=[input_type], outputs=[examples, input, upload_btn, chain_box])
+            input_type.change(fn=change_input_type, inputs=[input_type],
+                              outputs=[examples, input, upload_btn, chain_box, typo_check])
             
             with gr.Row():
                 search_btn = gr.Button(value="Search")
@@ -484,3 +533,7 @@ def build_search_module():
                       outputs=[results, download_btn, histogram, hidden_results], concurrency_limit=4)
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
+        
+        # Check typos
+        input.change(fn=check_typos, inputs=[input_type, input], outputs=[typo_check])
+        

@@ -11,3 +11,4 @@ biopython==1.83
 easydict==1.13
 lmdb==1.4.1
 multiprocess
+pyspellchecker==0.8.2
