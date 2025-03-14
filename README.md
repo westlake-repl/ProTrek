@@ -27,7 +27,8 @@ If you have any question about the paper or the code, feel free to raise an issu
 
 ## News
 - **2025/02/20:** ProTrek search results have been experimentally validated, see [here](https://x.com/duguyuan/status/1892419416924836164).
-- **2025/1/1:** We added the GOPC database, which contains 2 bilion protein sequences from global ocean microbiome.
+- **2025/02/09:** We added the NCBI database, which contains 700 million protein sequences
+- **2025/01/01:** We added the GOPC database, which contains 2 bilion protein sequences from global ocean microbiome.
 - **2024/09/27:** We added the OMG database, which contains 200 million protein sequences from metagenomic sequencing.
 - **2024/09/04:** We built [ColabProTrek](https://colab.research.google.com/github/westlake-repl/SaprotHub/blob/main/colab/ColabProTrek.ipynb?hl=en).
 ColabProTrek has joined [OPMC](https://theopmc.github.io/).
