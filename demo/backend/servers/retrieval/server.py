@@ -176,6 +176,12 @@ def set_state(state: str):
 # Specify the server port
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=None)
+parser.add_argument('--sequence_db', type=str, default=None,
+                    help="Specify which sequence databases to use. If None, follow the config file.")
+parser.add_argument('--structure_db', type=str, default=None,
+                    help="Specify which structure databases to use. If None, follow the config file.")
+parser.add_argument('--text_db', type=str, default=None,
+                    help="Specify which text databases to use. If None, follow the config file.")
 args = parser.parse_args()
 
 if args.port is None:

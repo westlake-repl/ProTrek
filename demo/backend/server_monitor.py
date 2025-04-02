@@ -62,4 +62,5 @@ if __name__ == '__main__':
 
         os.system("clear")
         print(display_info)
-        time.sleep(1)
+        time.sleep(0.1)
+
