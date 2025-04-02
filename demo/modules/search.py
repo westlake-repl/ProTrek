@@ -157,13 +157,18 @@ def plot(scores) -> None:
 
 # Calculate protein sequence identity
 def calc_seq_identity(seq1: str, seq2: str) -> float:
-    aligner = PairwiseAligner()
-    aligner.mode = "local"
-
-    alignment = next(aligner.align(seq1, seq2))
-    a1, a2 = alignment
-    identity = sum(1 for a, b in zip(a1, a2) if a == b) / len(a1)
-    return identity
+    try:
+        aligner = PairwiseAligner()
+        aligner.mode = "local"
+    
+        alignment = next(aligner.align(seq1, seq2))
+        a1, a2 = alignment
+        identity = sum(1 for a, b in zip(a1, a2) if a == b) / len(a1)
+        return identity
+    
+    except Exception as e:
+        print(e)
+        return 0.0
 
 
 # Search from database
@@ -535,5 +540,5 @@ def build_search_module():
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
         
         # Check typos
-        input.change(fn=check_typos, inputs=[input_type, input], outputs=[typo_check])
+        # input.change(fn=check_typos, inputs=[input_type, input], outputs=[typo_check])
         
