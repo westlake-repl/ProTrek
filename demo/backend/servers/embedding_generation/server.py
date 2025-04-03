@@ -9,6 +9,7 @@ import socket
 import os
 import torch
 import glob
+import json
 import argparse
 
 from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
@@ -54,7 +55,10 @@ def generate_embedding(input: str, input_type: str):
 def set_state(state: str):
     flag_path = f"{BASE_DIR}/server_list/{get_ip()}:{PORT}.flag"
     with open(flag_path, "w") as w:
-        w.write(state)
+        state_dict = {
+            "state": state,
+        }
+        json.dump(state_dict, w, indent=4)
 
 
 # Get the IP address of the server
@@ -119,4 +123,4 @@ if __name__ == "__main__":
     # Generate IP flag
     set_state("idle")
 
-    uvicorn.run("server:app", host="0.0.0.0", port=PORT)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

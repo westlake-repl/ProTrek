@@ -7,6 +7,7 @@ if ROOT_DIR not in sys.path:
 import uvicorn
 import os
 import requests
+import json
 
 from utils.server_tool import get_ip, check_port
 from fastapi import FastAPI
@@ -23,12 +24,14 @@ FUNCTION_MAP = {
 }
 
 
-def get_idle_node(server_dir: str) -> str:
+def get_idle_node(server_dir: str, filter_func=None) -> str:
     """
     Find an idle node in the server list to perform the request
     
     Returns:
-        ip_port: IP address of the idle node
+        server_dir: The directory that contains the server list
+        filter_func: A function to select suitable servers based on different tasks. If it returns True,
+                    the server is suitable.
     """
 
     # Find the first idle node
@@ -46,9 +49,16 @@ def get_idle_node(server_dir: str) -> str:
             continue
 
         with open(ip_info, "r") as r:
-            state = r.read()
+            try:
+                state_dict = json.load(r)
+            except Exception:
+                continue
 
-        if state == "idle":
+        if state_dict["state"] == "idle":
+            # If a filter function is provided, check if the server meets the criteria
+            if filter_func is not None and not filter_func(state_dict):
+                continue
+            
             return ip_port.split(".flag")[0]
     
     # No idle node
@@ -71,11 +81,16 @@ def search(input: str, topk: int, input_type: str, query_type: str, subsection_t
         subsection_type: If db_type is text, search in this subsection
 
         db: Database name for a specific db_type, e.g., "uniprot", "pdb" in sequence databases
-
-    Returns:
-
     """
-    ip = get_idle_node(FUNCTION_MAP["search"])
+    def filter_func(state_dict):
+        # Check if the server contains the required database
+        db_list = state_dict[query_type]
+        if db not in db_list:
+            return False
+        else:
+            return True
+        
+    ip = get_idle_node(FUNCTION_MAP["search"], filter_func)
     print(ip)
 
     # Send request to the idle node

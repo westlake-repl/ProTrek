@@ -1,6 +1,7 @@
 import os
 import time
 import socket
+import json
 
 
 # Check whether a server is active
@@ -53,12 +54,21 @@ if __name__ == '__main__':
 
                     else:
                         with open(ip_info, "r") as r:
-                            state = r.read().strip()
+                            try:
+                                state_dict = json.load(r)
+                                state = state_dict.pop("state")
+                            
+                            except Exception as e:
+                                continue
 
                         if state == "idle":
                             display_info += f"{ip}:{port}\t\033[32m{state}\033[0m\n"
                         else:
                             display_info += f"{ip}:{port}\t\033[31m{state}\033[0m\n"
+                        
+                        # Display the remaining information
+                        for key, value in state_dict.items():
+                            display_info += f"\t- {key}: {value}\n"
 
         os.system("clear")
         print(display_info)

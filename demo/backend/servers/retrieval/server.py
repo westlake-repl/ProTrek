@@ -12,7 +12,7 @@ import requests
 import numpy as np
 import argparse
 
-from init_index import all_index
+from init_index import init_index
 from fastapi import FastAPI
 from tqdm import tqdm
 from utils.server_tool import check_port_in_use, get_ip
@@ -170,7 +170,13 @@ def compute_score(manager_ip_port: str, input_type_1: str, input_1: str, input_t
 def set_state(state: str):
     flag_path = f"{BASE_DIR}/server_list/{get_ip()}:{PORT}.flag"
     with open(flag_path, "w") as w:
-        w.write(state)
+        state_dict = {
+            "state": state,
+            "sequence": list(all_index["sequence"].keys()),
+            "structure": list(all_index["structure"].keys()),
+            "text": list(all_index["text"].keys()),
+        }
+        json.dump(state_dict, w, indent=4)
 
 
 # Specify the server port
@@ -193,8 +199,16 @@ else:
     PORT = args.port
     
 
+# Initialize the index
+sequence_db = args.sequence_db.split(",") if args.sequence_db else None
+structure_db = args.structure_db.split(",") if args.structure_db else None
+text_db = args.text_db.split(",") if args.text_db else None
+all_index, valid_subsections = init_index(sequence_db, structure_db, text_db)
+
+
 if __name__ == "__main__":
     # Generate IP flag
     set_state("idle")
+    
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
 
-    uvicorn.run("server:app", host="0.0.0.0", port=PORT)

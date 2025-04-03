@@ -6,9 +6,14 @@ from utils.constants import sequence_level
 from utils.file_reader import FileReader
 from utils.faiss_index import FaissIndex
 from tqdm import tqdm
+from typing import List
 
 
-def load_index():
+ROOT_DIR = __file__.rsplit("/", 5)[0]
+config_path = f"{ROOT_DIR}/demo/config.yaml"
+
+
+def load_index(config):
     all_index = {}
 
     # Load protein sequence index
@@ -93,11 +98,42 @@ def load_index():
     return all_index, valid_subsections
 
 
-# Load the config file
-ROOT_DIR = __file__.rsplit("/", 5)[0]
-config_path = f"{ROOT_DIR}/demo/config.yaml"
-with open(config_path, 'r', encoding='utf-8') as r:
-    config = EasyDict(yaml.safe_load(r)).retrieval
+def init_index(sequence_db: List[str] = None, structure_db: List[str] = None, text_db: List[str] = None):
+    """
+    Args:
+        sequence_db: Specify which sequence databases to use. If None, follow the config file.
+        structure_db: Specify which structure databases to use. If None, follow the config file.
+        text_db: Specify which text databases to use. If None, follow the config file.
+    """
 
-all_index, valid_subsections = load_index()
-print("Done...")
+    # Load the config file
+    with open(config_path, 'r', encoding='utf-8') as r:
+        config = EasyDict(yaml.safe_load(r)).retrieval
+    
+    # Override the config file with the specified databases
+    if sequence_db is not None:
+        sequence_index_dir = []
+        for db in config.sequence_index_dir:
+            if db["name"] in sequence_db:
+                sequence_index_dir.append(db)
+        
+        config.sequence_index_dir = sequence_index_dir
+    
+    if structure_db is not None:
+        structure_index_dir = []
+        for db in config.structure_index_dir:
+            if db["name"] in structure_db:
+                structure_index_dir.append(db)
+        
+        config.structure_index_dir = structure_index_dir
+    
+    if text_db is not None:
+        text_index_dir = []
+        for db in config.text_index_dir:
+            if db["name"] in text_db:
+                text_index_dir.append(db)
+        
+        config.text_index_dir = text_index_dir
+    
+    all_index, valid_subsections = load_index(config)
+    return all_index, valid_subsections
