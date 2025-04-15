@@ -42,8 +42,8 @@ samples = {
         ],
 
     "text": [
-        ["Proteins with zinc bindings."],
-        ["Proteins locating at cell membrane."],
+        ["Oxidase which catalyzes the oxidation of various aldopyranoses and disaccharides."],
+        ["Erythropoietin for regulation of erythrocyte proliferation and differentiation."],
         ["Catalyzes the hydrolysis of cutin, a polyester that forms the structure of plant cuticle "]
     ],
 }
@@ -123,8 +123,8 @@ def plot(scores) -> None:
     plot_available = False
 
     plt.hist(scores, bins=100, density=True, alpha=0.6)
-    plt.title('Distribution of similarity scores in the database', fontsize=15)
-    plt.xlabel('Similarity score', fontsize=15)
+    plt.title('Distribution of matching scores in the database', fontsize=15)
+    plt.xlabel('Matching score', fontsize=15)
     plt.ylabel('Density', fontsize=15)
     y_ed = plt.gca().get_ylim()[-1]
     plt.ylim(-0.05, y_ed)
@@ -289,26 +289,27 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
 
     limit = 1000
     seq_column_name = "Sequence" if query_type == "sequence" else "Foldseek sequence"
+    matching_score_name = "[Matching score](https://github.com/westlake-repl/ProTrek/wiki/FAQs#q4-what-do-the-different-protrek-matching-scores-mean-and-how-should-they-be-interpreted)"
     if query_type == "text":
-        df = pd.DataFrame({"Id": topk_ids[:limit], "Matching score": topk_scores[:limit]})
+        df = pd.DataFrame({"Id": topk_ids[:limit], matching_score_name: topk_scores[:limit]})
         if len(topk_ids) > limit:
-            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], "Matching score": ["..."]},
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], matching_score_name: ["..."]},
                                    index=[1000])
             df = pd.concat([df, info_df], axis=0)
 
     elif input_type == "sequence" and query_type == "sequence":
         df = pd.DataFrame({"Id": topk_ids[:limit], seq_column_name: topk_seqs[:limit],
                            "Length": topk_lengths[:limit], "Sequence identity": seq_identities[:limit],
-                          "Matching score": topk_scores[:limit]})
+                          matching_score_name: topk_scores[:limit]})
         if len(topk_ids) > limit:
             info_df = pd.DataFrame({"Id": ["Download the file to check all results"], seq_column_name: ["..."], "Length": ["..."],
-                                    "Sequence identity": ["..."], "Matching score": ["..."]}, index=[1000])
+                                    "Sequence identity": ["..."], matching_score_name: ["..."]}, index=[1000])
             df = pd.concat([df, info_df], axis=0)
 
     else:
-        df = pd.DataFrame({"Id": topk_ids[:limit], seq_column_name: topk_seqs[:limit], "Length": topk_lengths[:limit], "Matching score": topk_scores[:limit]})
+        df = pd.DataFrame({"Id": topk_ids[:limit], seq_column_name: topk_seqs[:limit], "Length": topk_lengths[:limit], matching_score_name: topk_scores[:limit]})
         if len(topk_ids) > limit:
-            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], seq_column_name: ["..."], "Length": ["..."], "Matching score": ["..."]},
+            info_df = pd.DataFrame({"Id": ["Download the file to check all results"], seq_column_name: ["..."], "Length": ["..."], matching_score_name: ["..."]},
                                    index=[1000])
             df = pd.concat([df, info_df], axis=0)
     

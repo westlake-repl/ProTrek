@@ -1,4 +1,5 @@
 import gradio as gr
+import os
 
 from utils.foldseek_util import get_struc_seq
 
@@ -45,7 +46,10 @@ def parse_pdb_file(input_type: str, file: str, chain: str) -> str:
         Protein sequence or Foldseek sequence
     """
     try:
-        parsed_seqs = get_struc_seq(f"{ROOT_DIR}/bin/foldseek", file, [chain])[chain]
+        processed_file = file.replace(" ", "")
+        os.rename(file, processed_file)
+        
+        parsed_seqs = get_struc_seq(f"{ROOT_DIR}/bin/foldseek", processed_file, [chain])[chain]
         if input_type == "sequence":
             return parsed_seqs[0]
         else:
