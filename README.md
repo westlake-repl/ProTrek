@@ -6,7 +6,9 @@
 
 The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://doi.org/10.1101/2024.05.30.596740) (bioRxiv paper name).
 
-Quickly try our online server [here](http://search-protrek.com/).
+Quickly try our online server [here](http://search-protrek.com/). 
+
+More information about ProTrek, see [FAQ](https://github.com/westlake-repl/ProTrek/wiki/FAQs)
 
 If you have any question about the paper or the code, feel free to raise an issue!
 
