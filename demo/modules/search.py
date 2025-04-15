@@ -452,7 +452,7 @@ def check_typos(input_type: str, input: str):
 def build_search_module():
     gr.Markdown(f"# Search [protein databases](https://github.com/westlake-repl/ProTrek/wiki/Database-introduction)"
                 f" with [ProTrek](https://github.com/westlake-repl/ProTrek) ")
-    gr.Markdown(f"## >>> [FAQs](https://github.com/westlake-repl/ProTrek/wiki/FAQs)")
+    gr.Markdown(f"## >>> [Read FAQs](https://github.com/westlake-repl/ProTrek/wiki/FAQs)")
     gr.Markdown(f"**Note: ProTrek does not support viral protein predictions for security reasons.**")
     with gr.Row(equal_height=True):
         with gr.Column():
