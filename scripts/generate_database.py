@@ -1,7 +1,8 @@
 import os
 import sys
 
-sys.path += ["."]
+ROOT_DIR = __file__.rsplit("/", 2)[0]
+sys.path += [ROOT_DIR]
 
 import argparse
 import torch

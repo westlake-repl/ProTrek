@@ -200,7 +200,6 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         with open(response["file_path"], "r") as r:
             response = json.load(r)
     except Exception as e:
-        print(response)
         raise gr.Error("The system is busy. Please try again later.")
     
     # Record visits
