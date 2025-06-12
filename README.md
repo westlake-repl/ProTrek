@@ -87,7 +87,7 @@ chmod +x bin/foldseek
 
 ## Obtain embeddings and calculate similarity score
 Below is an example of how to obtain embeddings and calculate similarity score using the pre-trained ProTrek model.
-```
+```python
 import torch
 
 from model.ProTrek.protrek_trimodal_model import ProTrekTrimodalModel
