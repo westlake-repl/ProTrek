@@ -10,7 +10,7 @@ import requests
 import json
 import time
 
-from spellchecker import SpellChecker
+# from spellchecker import SpellChecker
 from easydict import EasyDict
 from scipy.stats import norm
 # from .init_model import model, all_index, valid_subsections
@@ -20,7 +20,7 @@ from utils.constants import sequence_level
 
 
 # Initialize spell checker
-spell = SpellChecker()
+# spell = SpellChecker()
 
 tmp_file_path = "/tmp/results.tsv"
 tmp_plot_path = "/tmp/histogram.png"
@@ -193,14 +193,15 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         "subsection_type": subsection_type,
         "db": db
     }
-    
+
     try:
         url = f"http://127.0.0.1:7861/search"
         response = requests.get(url=url, params=params).json()
         with open(response["file_path"], "r") as r:
             response = json.load(r)
     except Exception as e:
-        raise gr.Error("The system is busy. Please try again later.")
+        raise gr.Error(f"The database \"{db}\" is being used by other users. You could try again later (several minutes) or"
+                   f" choose other databases.")
     
     # Record visits
     record(params)
