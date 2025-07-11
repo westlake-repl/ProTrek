@@ -200,8 +200,14 @@ def search(input: str, nprobe: int, topk: int, input_type: str, query_type: str,
         with open(response["file_path"], "r") as r:
             response = json.load(r)
     except Exception as e:
-        raise gr.Error(f"The database \"{db}\" is being used by other users. You could try again later (several minutes) or"
+        gr.Info(f"The database \"{db}\" is being used by other users. You could try again later (several minutes) or"
                    f" choose other databases.")
+        return (
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update()
+        )
     
     # Record visits
     record(params)
