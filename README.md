@@ -28,7 +28,7 @@ If you have any question about the paper or the code, feel free to raise an issu
 </details>
 
 ## News
-- **2025/07/08:** ProTrek has been accepted as **Nature Biotechnology** 🎉🎉🎉!
+- **2025/07/08:** ProTrek has been accepted as **Nature Biotechnology** 🎉🎉🎉! Final version would be released soon.
 - **2025/02/20:** ProTrek search results have been experimentally validated, see [here](https://x.com/duguyuan/status/1892419416924836164).
 - **2025/02/09:** We added the NCBI database, which contains 700 million protein sequences
 - **2025/01/01:** We added the GOPC database, which contains 2 bilion protein sequences from global ocean microbiome.
