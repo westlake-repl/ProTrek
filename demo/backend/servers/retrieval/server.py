@@ -110,6 +110,8 @@ def search(manager_ip_port: str,
 
     except Exception as e:
         return_dict = {"error": str(e)}
+        print(e)
+        # raise e
 
     finally:
         # Set server state to idle

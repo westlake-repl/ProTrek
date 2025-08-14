@@ -42,7 +42,8 @@ if __name__ == '__main__':
             server_list = os.listdir(sub_server_dir)
 
             display_info += f"\nIP:PORT\tSTATE\t(Service: {dir_name})\n"
-
+            
+            info_dict = {}
             for ip_port in server_list:
                 if ip_port.endswith(".flag"):
                     ip, port = ip_port.split(".flag")[0].split(":")
@@ -50,7 +51,7 @@ if __name__ == '__main__':
 
                     # Remove inaccessible server
                     if not check_port(ip, int(port)):
-                        display_info += f"{ip}:{port}\t\033[31minaccessible\033[0m\n"
+                        state_str = f"{ip}:{port}\t\033[31minaccessible\033[0m\n"
 
                     else:
                         with open(ip_info, "r") as r:
@@ -62,14 +63,25 @@ if __name__ == '__main__':
                                 continue
 
                         if state == "idle":
-                            display_info += f"{ip}:{port}\t\033[32m{state}\033[0m\n"
+                            state_str = f"{ip}:{port}\t\033[32m{state}\033[0m\t"
                         else:
-                            display_info += f"{ip}:{port}\t\033[31m{state}\033[0m\n"
+                            state_str = f"{ip}:{port}\t\033[31m{state}\033[0m\t"
                         
-                        # Display the remaining information
-                        for key, value in state_dict.items():
-                            display_info += f"\t- {key}: {value}\n"
-
+                        if len(state_dict) == 0:
+                            info_dict[""] = info_dict.get("", []) + [state_str]
+                        
+                        else:
+                            # Display the remaining information
+                            key_str = "\n"
+                            for key, value in state_dict.items():
+                                key_str += f"\t- {key}: {value}\n"
+                            info_dict[key_str] = info_dict.get(key_str, []) + [state_str]
+            
+            for key, value in info_dict.items():
+                display_info += "".join(value)
+                if key != "":
+                    display_info += key
+        
         os.system("clear")
         print(display_info)
         time.sleep(0.1)

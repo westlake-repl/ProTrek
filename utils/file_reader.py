@@ -24,7 +24,7 @@ class FileReader:
 
                 cnt += 1
                 if cnt % 100000 == 0:
-                    print(f"\rAlready loaded {cnt} rows", end='')
+                    print(f"\rAlready loaded {cnt} rows", end='', flush=True)
             
             loc_array = np.array(loc_array)
             np.save(save_path, loc_array)
