@@ -1,7 +1,7 @@
 # ProTrek: Illuminating the Protein Universe with Tri-Modal Language Models
 <a href="https://doi.org/10.1101/2024.05.30.596740"><img src="https://img.shields.io/badge/Paper-bioRxiv-green" style="max-width: 100%;"></a>
 <a href="http://search-protrek.com/"><img src="https://img.shields.io/badge/🔍ProTrek-red?label=Server" style="max-width: 100%;"></a>
-<a href="https://huggingface.co/westlake-repl/ProTrek_650M_TrEMBL50"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
+<a href="https://huggingface.co/westlake-repl/ProTrek_650M"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
 <a href="https://cbirt.net/charting-the-protein-universe-with-protreks-tri-modal-contrastive-learning/" alt="blog"><img src="https://img.shields.io/badge/Blog-Medium-purple" /></a> 
 
 The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://doi.org/10.1101/2024.05.30.596740) (bioRxiv paper name).
@@ -61,19 +61,19 @@ bash environment.sh
 
 ## Download model weights
 ProTrek provides pre-trained models with different sizes (35M and 650M), as shown below. For each pre-trained model, 
-Please download all files and put them in the `weights` directory, e.g. `weights/ProTrek_35M_TrEMBL50/...`.
+Please download all files and put them in the `weights` directory, e.g. `weights/ProTrek_35M/...`.
 
 
 | **Name**                                                     | **Size （protein sequence encoder）** | **Size （protein structure encoder）** | **Size （text encoder）** | Dataset               |
 | ------------------------------------------------------------ | ------------------------------------- | -------------------------------------- |-------------------------| --------------------- |
-| [ProTrek_35M_TrEMBL50](https://huggingface.co/westlake-repl/ProTrek_35M_TrEMBL50) | 35M parameters                        | 35M parameters                         | 130M parameters         | Swiss-Prot + TrEMBL50 |
-| [ProTrek_650M_TrEMBL50](https://huggingface.co/westlake-repl/ProTrek_650M_TrEMBL50) | 650M parameters                       | 150M parameters                        | 130M parameters         | Swiss-Prot + TrEMBL50 |
+| [ProTrek_35M](https://huggingface.co/westlake-repl/ProTrek_35M) | 35M parameters                        | 35M parameters                         | 130M parameters         | Swiss-Prot + TrEMBL50 |
+| [ProTrek_650M](https://huggingface.co/westlake-repl/ProTrek_650M) | 650M parameters                       | 150M parameters                        | 130M parameters         | Swiss-Prot + TrEMBL50 |
 
 We provide an example to download the pre-trained model weights.
 ```
-huggingface-cli download westlake-repl/ProTrek_650M_TrEMBL50 \
+huggingface-cli download westlake-repl/ProTrek_650M \
                          --repo-type model \
-                         --local-dir weights/ProTrek_650M_TrEMBL50
+                         --local-dir weights/ProTrek_650M
 ```
 > Note: if you cannot access the huggingface website, you can try to connect to the mirror site through "export 
 > HF_ENDPOINT=https://hf-mirror.com"
@@ -96,12 +96,12 @@ from utils.foldseek_util import get_struc_seq
 
 # Load model
 config = {
-    "protein_config": "weights/ProTrek_650M_TrEMBL50/esm2_t33_650M_UR50D",
-    "text_config": "weights/ProTrek_650M_TrEMBL50/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-    "structure_config": "weights/ProTrek_650M_TrEMBL50/foldseek_t30_150M",
+    "protein_config": "weights/ProTrek_650M/esm2_t33_650M_UR50D",
+    "text_config": "weights/ProTrek_650M/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+    "structure_config": "weights/ProTrek_650M/foldseek_t30_150M",
     "load_protein_pretrained": False,
     "load_text_pretrained": False,
-    "from_checkpoint": "weights/ProTrek_650M_TrEMBL50/ProTrek_650M_TrEMBL50.pt"
+    "from_checkpoint": "weights/ProTrek_650M/ProTrek_650M.pt"
 }
 
 device = "cuda"
@@ -151,7 +151,7 @@ Similarity score between protein structure and text: 11.866174697875977
 ```
 
 ## Deploy your server locally
-We provide an [online server](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M_TrEMBL50) for using ProTrek.
+We provide an [online server](https://huggingface.co/spaces/westlake-repl/Demo_ProTrek_650M) for using ProTrek.
 If you want to deploy the server locally, please follow the steps below:
 
 ### Step 1: Install the environment
@@ -161,12 +161,12 @@ Please follow the instructions in the [Environment installation](#Environment-in
 Please follow the instructions in the [Download Foldseek binary file](#Download-Foldseek-binary-file) section.
 
 ### Step 3: Download the pre-trained model weights
-Please download the weights of [ProTrek_650M_TrEMBL50](https://huggingface.co/westlake-repl/ProTrek_650M_TrEMBL50) and put them into the `weights` directory, 
-i.e. `weights/ProTrek_650M_TrEMBL50/...`. Please follow the instructions in the 
+Please download the weights of [ProTrek_650M](https://huggingface.co/westlake-repl/ProTrek_650M) and put them into the `weights` directory, 
+i.e. `weights/ProTrek_650M/...`. Please follow the instructions in the 
 [Download model weights](#Download-model-weights) section.
 
 ### Step 4: Download pre-computed faiss index
-We have built faiss index for fast retrieval using the embedding computed by [ProTrek_650M_TrEMBL50](https://huggingface.co/westlake-repl/ProTrek_650M_TrEMBL50). 
+We have built faiss index for fast retrieval using the embedding computed by [ProTrek_650M](https://huggingface.co/westlake-repl/ProTrek_650M). 
 Please download the faiss index from [here](https://huggingface.co/datasets/westlake-repl/faiss_index_ProTrek_650M_UniRef50/tree/main)
 and put it into the `faiss_index` directory, i.e. `faiss_index/SwissProt/...`. You can follow the below command to
 download the faiss index.
@@ -189,7 +189,7 @@ You can add your custom database to the server for retrieval. Please follow the 
 ### Step 1: Build the faiss index
 You can build the faiss index through a ``.fasta`` file:
 ```
-python scripts/generate_database.py --fasta example/custom_db.fasta --save_dir faiss_index/Custom/ProTrek_650M_TrEMBL50/sequence
+python scripts/generate_database.py --fasta example/custom_db.fasta --save_dir faiss_index/Custom/ProTrek_650M/sequence
 ```
 
 ### Step 2: Add the index to the config file
@@ -199,11 +199,11 @@ You need to add the index to the ``demo/config.yaml``:
 
 sequence_index_dir:
   - name: Swiss-Prot
-    index_dir: faiss_index/SwissProt/ProTrek_650M_TrEMBL50/sequence
+    index_dir: faiss_index/SwissProt/ProTrek_650M/sequence
 
 # Add your custom database here
   - name: Custom
-    index_dir: faiss_index/Custom/ProTrek_650M_TrEMBL50/sequence
+    index_dir: faiss_index/Custom/ProTrek_650M/sequence
     
 ...
 
