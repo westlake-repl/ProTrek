@@ -14,7 +14,7 @@ More information about ProTrek, see [FAQ](https://github.com/westlake-repl/ProTr
 
 If you have any question about the paper or the code, feel free to raise an issue!
 
-> We have 2 PhD positions for international students at Westlake University, China! see [here](https://x.com/duguyuan/status/1897101692665258245).  
+> We have 2 PhD positions for international students at Westlake University, China! Join us [here](https://x.com/duguyuan/status/1897101692665258245).  Contact yuanfajie@westlake.edu.cn 
 
 <details open><summary><b>Table of contents</b></summary>
 
