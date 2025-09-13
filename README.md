@@ -8,7 +8,7 @@ The repository is an official implementation of [ProTrek: Navigating the Protein
 
 Quickly try our **online server** [here](http://search-protrek.com/). 
 
-Download billion-scale **protein embeddings**  [here](https://protrek.westlake.edu.cn/). 
+Download **billion-scale protein embeddings**  [here](https://protrek.westlake.edu.cn/). 
 
 More information about ProTrek, see [FAQ](https://github.com/westlake-repl/ProTrek/wiki/FAQs)
 
