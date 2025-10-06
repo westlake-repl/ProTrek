@@ -1,10 +1,10 @@
-# ProTrek: Illuminating the Protein Universe with Tri-Modal Language Models
+# A trimodal protein language model enables advanced protein searches
 <a href="https://doi.org/10.1101/2024.05.30.596740"><img src="https://img.shields.io/badge/Paper-bioRxiv-green" style="max-width: 100%;"></a>
 <a href="http://search-protrek.com/"><img src="https://img.shields.io/badge/🔍ProTrek-red?label=Server" style="max-width: 100%;"></a>
 <a href="https://huggingface.co/westlake-repl/ProTrek_650M"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
 <a href="https://cbirt.net/charting-the-protein-universe-with-protreks-tri-modal-contrastive-learning/" alt="blog"><img src="https://img.shields.io/badge/Blog-Medium-purple" /></a> 
 
-The repository is an official implementation of [ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning](https://doi.org/10.1101/2024.05.30.596740) (bioRxiv paper name).
+The repository is an official implementation of [A trimodal protein language model enables advanced protein searches](https://www.nature.com/articles/s41587-025-02836-0).
 
 **Try our online server** [here](http://search-protrek.com/). 
 
