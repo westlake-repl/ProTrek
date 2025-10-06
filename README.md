@@ -224,13 +224,13 @@ Finally, you can run the server to use the custom database.
 ## Citation
 If you find ProTrek useful for your research, please consider citing the following paper:
 ```
-@article{su2024protrek,
-  title={ProTrek: Navigating the Protein Universe through Tri-Modal Contrastive Learning},
-  author={Su, Jin and Zhou, Xibin and Zhang, Xuting and Yuan, Fajie},
-  journal={bioRxiv},
-  pages={2024--05},
-  year={2024},
-  publisher={Cold Spring Harbor Laboratory}
+@article{su2025trimodal,
+  title={A trimodal protein language model enables advanced protein searches},
+  author={Su, Jin and He, Yan and You, Shiyang and Jiang, Shiyu and Zhou, Xibin and Zhang, Xuting and Wang, Yuxuan and Su, Xining and Tolstoy, Igor and Chang, Xing and others},
+  journal={Nature Biotechnology},
+  pages={1--7},
+  year={2025},
+  publisher={Nature Publishing Group US New York}
 }
 ```
 ### Other resources
