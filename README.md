@@ -103,8 +103,6 @@ config = {
     "protein_config": "weights/ProTrek_650M/esm2_t33_650M_UR50D",
     "text_config": "weights/ProTrek_650M/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
     "structure_config": "weights/ProTrek_650M/foldseek_t30_150M",
-    "load_protein_pretrained": False,
-    "load_text_pretrained": False,
     "from_checkpoint": "weights/ProTrek_650M/ProTrek_650M.pt"
 }
 
