@@ -4,7 +4,7 @@
 <a href="https://huggingface.co/westlake-repl/ProTrek_650M"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-yellow?label=Model" style="max-width: 100%;"></a>
 <a href="https://cbirt.net/charting-the-protein-universe-with-protreks-tri-modal-contrastive-learning/" alt="blog"><img src="https://img.shields.io/badge/Blog-Medium-purple" /></a> 
 
-You can download the final accepted version [here](https://drive.google.com/file/d/11rNOUlSr8CSpBc5QsJH8QXa1oje_qyXT/view?usp=drive_link), provided for open access purposes.
+You can download the final accepted version [here](https://drive.google.com/file/d/11rNOUlSr8CSpBc5QsJH8QXa1oje_qyXT/view?usp=drive_link) in Nature Biotechnology, provided for open access purposes.
 
 **Try our online server** [here](http://search-protrek.com/). 
 
