@@ -8,6 +8,8 @@ You can download the final accepted version [here](https://drive.google.com/file
 
 **Try our online server** [here](http://search-protrek.com/). 
 
+**Finetuning ProTrek for diverse tasks**  [here](https://colab.research.google.com/github/westlake-repl/SaprotHub/blob/main/colab/ColabSeprot.ipynb?hl=en#scrollTo=paX3gluumu7J). 
+
 **Download billion-scale protein embeddings**  [here](https://protrek.westlake.edu.cn/). 
 
 More information about ProTrek, see [FAQ](https://github.com/westlake-repl/ProTrek/wiki/FAQs)
