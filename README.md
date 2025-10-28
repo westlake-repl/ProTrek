@@ -155,7 +155,7 @@ Similarity score between protein structure and text: 11.866174697875977
 ```
 
 ## Deploy your server locally
-We strongly recommend deploying it on your university server and have your IT department （or a computer science student） do it, it's easy for them. Please follow the steps below:
+We strongly recommend deploying it on your university server and have your IT department (or a computer science student) do it, it's easy for them. Please follow the steps below:
 
 ### Step 1: Install the environment
 Please follow the instructions in the [Environment installation](#Environment-installation) section.
