@@ -515,7 +515,7 @@ def build_search_module():
                            outputs=[subsection_type, nprobe])
             
             # Choose topk results
-            topk = gr.Slider(1, 10000, 5,  step=1, label="Retrieve top k results")
+            topk = gr.Slider(1, 100000, 5,  step=1, label="Retrieve top k results")
 
             # Provide examples
             examples = gr.Dataset(samples=samples["text"], components=[input], label="Input examples")
@@ -542,7 +542,7 @@ def build_search_module():
                 histogram = gr.Image(label="Histogram of matching scores", type="filepath", scale=1, visible=False)
             
         search_btn.click(fn=search, inputs=[input, nprobe, topk, input_type, query_type, subsection_type, db_type],
-                      outputs=[results, download_btn, histogram, hidden_results], concurrency_limit=4)
+                      outputs=[results, download_btn, histogram, hidden_results], concurrency_limit=100)
         
         clear_btn.click(fn=clear_results, outputs=[results, download_btn, histogram])
         
