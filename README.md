@@ -186,6 +186,13 @@ specified URL to use the server.
 python demo/run_pipeline.py
 ```
 
+### Step 6(optional): SSH port forwarding
+If the software is deployed on your remote server, you can use SSH port forwarding to connect to the server. Specifically, you can run the code below on your local computer:
+```
+ssh -NL 7860:localhost:7860 user@remote_server
+```
+Then you can visit http://127.0.0.1:7860/ on your local computer.
+
 ## Add custom database
 You can add your custom database to the server for retrieval. Please follow the instructions below:
 
